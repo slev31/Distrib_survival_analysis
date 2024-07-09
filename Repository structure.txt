@@ -1,0 +1,7 @@
+Repository structure
+
+1. The core article is in the root directory : Lu et al. - 2015 - WebDISCO a web service for distributed cox model.pdf
+: This describes the background of the work and presents the method used
+
+2. Cox model
+: This folder contains including generic code and examples
