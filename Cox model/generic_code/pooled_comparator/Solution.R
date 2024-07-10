@@ -7,6 +7,8 @@
 library("survival")
 library("survminer")
 
+nbBetas <- ... # Input the number of betas
+
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
 manualwd <- -1
@@ -45,10 +47,9 @@ data3 <- read.csv("../Data_site_3.csv")
 data <- rbind(data1, data2, data3)
 
 # Calculate Cox model
-res.cox <- coxph(Surv(time, status) ~ ... , data) # Input the column names here separated by a +
-
-# Example: if columns are named x1, x2 and x3 -> coxph(Surv(time, status) ~ x1 + x2 + x3 , data)
-
+column_indices <- (3:(nbBetas + 2))
+formula <- as.formula(paste("Surv(time, status) ~", paste(paste0("data[,", column_indices, "]"), collapse = " + ")))
+res.cox <- coxph(formula, data)
 summary(res.cox)
 
 ## Remove all environment variables. 

@@ -74,17 +74,24 @@ if (manualk >= 0) {
 
 # Verifying that a valid node number could be allocated manually or automatically
 if (k >= 0) {
-  if (!file.exists(paste0("Times_", manualk ,"_output.csv"))) {             # If no files found --- call first function
+  
+  if (!file.exists(paste0("Times_", manualk ,"_output.csv"))) {     # If no files found --- call first function to initialize time and local betas
     source("Local_site_core_times.R")
-    data_event_times(manualwd, k)
-  } else if (!file.exists(paste0("Dik", manualk ,".csv"))) {                # If global times file exists -- call second function
+    data_event_times(manualwd, k, nbBetas)
+    
+  } else if (!file.exists(paste0("Dik", manualk ,".csv"))) {        # If global times file exists -- call second function to calculate params
     source("Local_site_core_params.R")
     parameters_sites(manualwd, k, nbBetas)
-  } else if (file.exists("Beta_1_output.csv")) {                            # If beta file exists --- call third function
+    
+    source("Local_site_core_betas.R")
+    calculate_local_values(manualwd, k, nbBetas, 1)
+    
+  } else if (file.exists("Beta_1_output.csv")) {                    # If beta file exists --- call third function to calculate aggregates
     # Must use the last available beta
     files <- list.files(pattern = "Beta_\\d+_output.csv")
     numbers <- as.numeric(gsub("Beta_(\\d+)_output.csv", "\\1", files))
     max_number <- max(numbers)
+    
     source("Local_site_core_betas.R")
     calculate_local_values(manualwd, k, nbBetas, max_number)
   }

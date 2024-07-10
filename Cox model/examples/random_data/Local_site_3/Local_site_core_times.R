@@ -9,10 +9,11 @@ library("survival")
 library("survminer")
 
 # First function --- Calculate different event times
-data_event_times <- function(man_wd=-1,nodeid=-1) {
+data_event_times <- function(man_wd=-1,nodeid=-1,nodebetas=-1) {
   
   manualwd <- man_wd
   k <- nodeid
+  nbBetas <- nodebetas
   
   if (k<0){
     stop
@@ -46,6 +47,15 @@ data_event_times <- function(man_wd=-1,nodeid=-1) {
   node_data <- read.csv(paste0("Data_site_", k, ".csv"))
   event_times <- unique(node_data$time[node_data$status == 1])
   write.csv(event_times, file=paste0("Times_",k,"_output.csv"),row.names = FALSE,na="")
+  
+  # Calculate local Cox model
+  column_indices <- (3:(nbBetas + 2))
+  formula <- as.formula(paste("Surv(time, status) ~", paste(paste0("node_data[,", column_indices, "]"), collapse = " + ")))
+  res.cox <- coxph(formula, node_data)
+  write.csv(coef(res.cox), file=paste0("Beta_local_",k,".csv"),row.names = FALSE,na="0")
+  
+  # Get number of data for beta initialization
+  write.csv(nrow(node_data), file=paste0("Number_of_subjects_site_",k,".csv"),row.names = FALSE,na="0")
 
   rm(list = ls())
   

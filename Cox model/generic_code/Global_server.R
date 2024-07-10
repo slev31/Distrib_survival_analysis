@@ -14,7 +14,7 @@ library("MASS")
 manualwd <- -1
 
 # Number of parameters (covariates)
-nbBetas <- ... # Input the number of betas here
+nbBetas <- 10 # Input the number of betas here
 
 if (manualwd != 1) {
   
@@ -42,7 +42,7 @@ if (manualwd != 1) {
 
 K=length(list.files(pattern="Times_[[:digit:]]+_output.csv"))
 
-# First step: finding global times
+# First step: initialization
 if (!file.exists("Global_times_output.csv")) {
   
   # Read local times
@@ -56,40 +56,46 @@ if (!file.exists("Global_times_output.csv")) {
   Times_list <- sort(unique(combined_times))
   
   write.csv(Times_list, file="Global_times_output.csv", row.names = FALSE)
-
-}
-
-# Next step: global initialization and first beta
-if (file.exists(paste0("Dik", K, ".csv")) && !file.exists("Beta_1_output.csv")) {
   
-  sumZrGlobal <- 0
-  
-  for(i in 1:K){
-    Dik <- read.csv(paste0("Dik", i, ".csv"), header = FALSE, blank.lines.skip = FALSE)
-    if(i == 1){
-      normDikGlobal <- matrix(0, nrow = nrow(Dik)-1, ncol = 1)
-    }
-    normDikGlobal <- normDikGlobal + apply(Dik, 1, function(row) sum(row != ""))[-1]
-
-    sumZr <- read.csv(paste0("sumZr", i, ".csv"))
-    sumZrGlobal <- sumZrGlobal + colSums(sumZr)
+  # Beta initialization
+  beta_sum <- matrix(0, nbBetas, 1)
+  total_subjects <- 0
+  for (k in 1:K) {
+    local_subjects <- as.integer(read.csv(paste0("Number_of_subjects_site_", k, ".csv")))
+    total_subjects <- total_subjects + local_subjects
+    beta_sum <- beta_sum + local_subjects * as.matrix(read.csv(paste0("Beta_local_", k, ".csv")))
   }
-  
-  write.csv(normDikGlobal, file="normDikGlobal.csv", row.names = FALSE)
-  write.csv(sumZrGlobal, file="sumZrGlobal.csv", row.names = FALSE)
 
-  beta <- rep(0, nbBetas)
+  beta <- beta_sum/total_subjects
   write.csv(beta, file="Beta_1_output.csv", row.names = FALSE)
-  
 }
 
-# Last step: Calculate derivatives and new beta
-if (file.exists("Beta_1_output.csv") & file.exists("sumExp1_output_1.csv") ) {
+# Iterations: Calculate derivatives and new beta
+if (file.exists("sumExp1_output_1.csv") ) {
   
   # Must use the last available data
   files <- list.files(pattern = "Beta_\\d+_output.csv")
   numbers <- as.numeric(gsub("Beta_(\\d+)_output.csv", "\\1", files))
   ite <- max(numbers)
+  
+  # First iteration - some more initialization
+  if (ite == 1){
+    sumZrGlobal <- 0
+    
+    for(i in 1:K){
+      Dik <- read.csv(paste0("Dik", i, ".csv"), header = FALSE, blank.lines.skip = FALSE)
+      if(i == 1){
+        normDikGlobal <- matrix(0, nrow = nrow(Dik)-1, ncol = 1)
+      }
+      normDikGlobal <- normDikGlobal + apply(Dik, 1, function(row) sum(row != ""))[-1]
+      
+      sumZr <- read.csv(paste0("sumZr", i, ".csv"))
+      sumZrGlobal <- sumZrGlobal + colSums(sumZr)
+    }
+    
+    write.csv(normDikGlobal, file="normDikGlobal.csv", row.names = FALSE)
+    write.csv(sumZrGlobal, file="sumZrGlobal.csv", row.names = FALSE)
+  }
   
   # Verification to make sure new data is used to compute beta
   if (file.exists((paste0("sumExp", K, "_output_", ite, ".csv")))){
@@ -150,10 +156,10 @@ if (file.exists("Beta_1_output.csv") & file.exists("sumExp1_output_1.csv") ) {
     }
     
     # Calculate new beta
-    lrq_beta_inv <- ginv(lrq_beta) # Inverse de la matrice: solve(lrq_beta), ginv = pseudoinverse
+    lrq_beta_inv <- ginv(lrq_beta) # Inverse de la matrice: solve(lrq_beta), ginv = pseudoinvers
     betaT <- matrix(as.numeric(lr_beta), nrow = nbBetas, ncol = 1)
     
-    beta <- beta - lrq_beta_inv %*% betaT
+    beta <- beta - (lrq_beta_inv %*% betaT)
     
     # Write in csv to max_number+1
     write.csv(beta, file=paste0("Beta_", ite+1, "_output.csv"), row.names = FALSE)
