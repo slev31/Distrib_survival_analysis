@@ -14,7 +14,7 @@ library("MASS")
 manualwd <- -1
 
 # Number of parameters (covariates)
-nbBetas <- 3 # Input the number of betas here
+nbBetas <- 10 # Input the number of betas here
 
 if (manualwd != 1) {
   
@@ -83,11 +83,11 @@ if (file.exists("sumExp1_output_1.csv") ) {
     sumZrGlobal <- 0
     
     for(i in 1:K){
-      Dik <- read.csv(paste0("Dik", i, ".csv"), header = FALSE, blank.lines.skip = FALSE)
+      normDik <- read.csv(paste0("Dik", i, ".csv"), header = FALSE, blank.lines.skip = FALSE)
       if(i == 1){
-        normDikGlobal <- matrix(0, nrow = nrow(Dik)-1, ncol = 1)
+        normDikGlobal <- matrix(0, nrow = nrow(normDik)-1, ncol = 1)
       }
-      normDikGlobal <- normDikGlobal + apply(Dik, 1, function(row) sum(row != ""))[-1]
+      normDikGlobal <- normDikGlobal + matrix(as.numeric(as.matrix(normDik[-1, ])), ncol = 1, byrow = FALSE)
       
       sumZr <- read.csv(paste0("sumZr", i, ".csv"))
       sumZrGlobal <- sumZrGlobal + colSums(sumZr)

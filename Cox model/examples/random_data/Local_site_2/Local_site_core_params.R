@@ -93,13 +93,16 @@ parameters_sites <- function(man_wd=-1,nodeid=-1, nodebetas=-1) {
   df <- as.data.frame(do.call(rbind, padded_rows))
   df[is.na(df)] <- ""
   
+  # Norm Dik
+  normDikGlobal <- apply(df, 1, function(row) sum(row != ""))
+  
   # Convert Rik
   max_length <- max(sapply(Rik, function(x) if (is.null(x)) 0 else length(x)))
   padded_rows <- lapply(Rik, pad_with_na, max_length)
   df2 <- as.data.frame(do.call(rbind, padded_rows))
   
   # Write
-  write.csv(df, file=paste0("Dik",k,".csv"),row.names = FALSE,na="")
+  write.csv(normDikGlobal, file=paste0("Dik",k,".csv"),row.names = FALSE,na="")
   write.csv(df2, file=paste0("Rik",k,".csv"),row.names = FALSE,na="")
   write.csv(sumZr, file=paste0("sumZr",k,".csv"),row.names = FALSE,na="")
 
