@@ -4,4 +4,9 @@ Repository structure
 : This describes the background of the work and presents the method used
 
 2. Cox model
-: This folder contains generic code and examples
+: This folder contains generic code and examples of distributed Cox model.
+
+3. Data aggregation
+: This folder contains generic code and example to aggregate data for confidentiality. 
+
+# The Cox model does not ensure data privacy. The data has to be first aggregated to ensure confidentiality.
