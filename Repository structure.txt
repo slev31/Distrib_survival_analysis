@@ -4,4 +4,4 @@ Repository structure
 : This describes the background of the work and presents the method used
 
 2. Cox model
-: This folder contains including generic code and examples
+: This folder contains generic code and examples
