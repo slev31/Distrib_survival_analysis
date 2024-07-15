@@ -28,6 +28,7 @@ There are many ways to run R code. The proposed instructions here are focusing o
 
 1)	In the file "Average - Local - sitex.R", select all the code and execute it. A new file will be generated, which contains the original data with modified times.
 2)	Repeat this step for all sites.
+3)	This data can now be used for a privacy preserving Cox model.
 
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/

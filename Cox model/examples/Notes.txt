@@ -1,4 +1,4 @@
-Random_data and Random_data_same_folder are based on the same example.
+random_data and random_data_same_folder are based on the same example.
 
 The first one has the files separated in different folders to better mimic a distributed environment. To run, you need to copy the results across folders, which clarifies what is sent where.
 

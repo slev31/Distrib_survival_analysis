@@ -27,8 +27,9 @@ There are many ways to run R code. The proposed instructions here are focusing o
 *** If you are not able to automatically set your working directory, manually set the variable manualwd = 1
 
 1)	In the file "Non-uniform intervals - Local - sitex.R", select all the code and execute it, for all sites. A new file will be generated for every site, which contains a matrix.
-3)	In the file "Non-uniform intervals - Global.R", select all the code and execute it. A new file will be generated, which contains the border values of the intervals.
-5)	Select and execute the code of the file "Non-uniform intervals - Local -sitex.R", for all sites. A new file will be generated for every site, which contains the original data with modified times.
+2)	In the file "Non-uniform intervals - Global.R", select all the code and execute it. A new file will be generated, which contains the border values of the intervals.
+3)	Select and execute the code of the file "Non-uniform intervals - Local -sitex.R", for all sites. A new file will be generated for every site, which contains the original data with modified times.
+4)	This data can now be used for a privacy preserving Cox model.
 
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/

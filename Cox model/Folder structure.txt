@@ -5,5 +5,5 @@ Folder structure
 : Please read the code and its comments in the R file as files may require edition before being used
 
 2. examples
-: The examples folder contains a few examples. each example folder is self-contained
+: The examples folder contains a few examples. Each example folder is self-contained
 : Therefore, some files will be duplicated across examples, but this is to facilitate their exploration independantly

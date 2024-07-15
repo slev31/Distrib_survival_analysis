@@ -1,0 +1,10 @@
+Order of execution:
+
+1. Non-uniform intervals - Local
+: Generate matrix locally
+
+2. Non-uniform intervals - Global
+: Determine intervals
+
+3. Non-uniform intervals - Local
+: Split data according to partition
