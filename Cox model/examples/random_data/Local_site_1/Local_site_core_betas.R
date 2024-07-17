@@ -8,7 +8,20 @@
 library("survival")
 library("survminer")
 
-# Third function --- Calculate parameters for beta
+#' @title calculate_local_values
+#'
+#' @description This function calculates the parameters needed for the global first and second derivative.
+#'
+#' @param man_wd Parameter for manual working directory setting, integer.
+#' @param nodeid Site number, integer.
+#' @param nodebetas Number of covariates (betas), integer.
+#' @param nodenumber Iteration number, integer.
+#' 
+#' This function generates the following files:
+#' - sumExpk_output_it.csv, which is the sum of exp(beta*z) for each subject in the risk set at the i-th distinct event time.
+#' - sumZqExpk_output_it.csv, which isthe sum of zqexp(beta*z) for each subject in the risk set at the i-th distinct event time.
+#' - sumZqZrExpk_output_it.csv, which is the sum of zrzqexp(beta*z) for each subject in the risk set at the i-th distinct event time.
+
 calculate_local_values <- function(man_wd=-1,nodeid=-1, nodebetas=-1, nodenumber=-1) {
   
   manualwd <- man_wd
@@ -102,14 +115,14 @@ calculate_local_values <- function(man_wd=-1,nodeid=-1, nodebetas=-1, nodenumber
   }
 
   # Write in csv
-  write.csv(sumExp, file=paste0("sumExp",k,"_output_", max_number,".csv"),row.names = FALSE,na="")
-  write.csv(sumZqExp, file=paste0("sumZqExp",k,"_output_", max_number,".csv"),row.names = FALSE,na="")
+  write.csv(sumExp, file=paste0("sumExp",k,"_output_", max_number+1,".csv"),row.names = FALSE,na="")
+  write.csv(sumZqExp, file=paste0("sumZqExp",k,"_output_", max_number+1,".csv"),row.names = FALSE,na="")
   
   # Write in csv for 3D matrix (a bit more complex than 2d)
   list_of_matrices <- lapply(seq_len(dim(sumZqZrExp)[3]), function(i) sumZqZrExp[,,i])
   list_of_vectors <- lapply(list_of_matrices, as.vector)
   combined_matrix <- do.call(cbind, list_of_vectors)
-  write.csv(combined_matrix, file = paste0("sumZqZrExp",k,"_output_", max_number,".csv"), row.names = FALSE)
+  write.csv(combined_matrix, file = paste0("sumZqZrExp",k,"_output_", max_number+1,".csv"), row.names = FALSE)
   
   rm(list = ls())
   

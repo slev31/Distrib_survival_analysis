@@ -34,7 +34,7 @@ Then, to perform an iteration:
 
 :::::: EXECUTING THE POOLED SOLUTION CODE ::::::
 *** Make sure R studio is not currently running and close it if it is.
-1)	Navigate to the folder "pooled_comparator"
+1)	Navigate to the folder "pooled_solution"
 2)	Open the file "Solution.R". It should then appear in R.
 3)	Select all the code and click "run"
 4)	The results will be available in the console

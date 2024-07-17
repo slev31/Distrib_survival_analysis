@@ -5,8 +5,7 @@
 ## Copyright: GRIIS / Université de Sherbrooke
 
 # Loading packages and setting up core variables --------------------------
-library("survival")
-library("survminer")
+library("survival")          # Contains the core survival analysis routines 
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -19,7 +18,7 @@ manualk <- 3
 nbBetas <- 7
 
 # No modifications should be required below this point
-###########################
+######################################################
 
 k <- -1
 
@@ -75,19 +74,22 @@ if (manualk >= 0) {
 # Verifying that a valid node number could be allocated manually or automatically
 if (k >= 0) {
   
-  if (!file.exists(paste0("Times_", manualk ,"_output.csv"))) {     # If no files found --- call first function to initialize time and local betas
+  # If no files found --- call first function to initialize time and local betas
+  if (!file.exists(paste0("Times_", manualk ,"_output.csv"))) {
     source("Local_site_core_times.R")
     data_event_times(manualwd, k, nbBetas)
     
-  } else if (!file.exists(paste0("Dik", manualk ,".csv"))) {        # If global times file exists -- call second function to calculate params
+    # If global times file exists -- call second function to calculate params
+  } else if (!file.exists(paste0("Dik", manualk ,".csv"))) {
     source("Local_site_core_params.R")
     parameters_sites(manualwd, k, nbBetas)
     
     source("Local_site_core_betas.R")
     calculate_local_values(manualwd, k, nbBetas, 1)
     
-  } else if (file.exists("Beta_1_output.csv")) {                    # If beta file exists --- call third function to calculate aggregates
-    # Must use the last available beta
+    # If beta file exists --- call third function to calculate aggregates
+  } else if (file.exists("Beta_0_output.csv")) {
+    # Get the iteration number
     files <- list.files(pattern = "Beta_\\d+_output.csv")
     numbers <- as.numeric(gsub("Beta_(\\d+)_output.csv", "\\1", files))
     max_number <- max(numbers)

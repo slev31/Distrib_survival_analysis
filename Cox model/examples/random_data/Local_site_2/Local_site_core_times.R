@@ -8,7 +8,21 @@
 library("survival")
 library("survminer")
 
-# First function --- Calculate different event times
+#' @title data_event_times
+#'
+#' @description This function calculates the different event times for a single site.
+#' @description This function also calculates a local Cox model.
+#'
+#' @param man_wd Parameter for manual working directory setting, integer.
+#' @param nodeid Site number, integer.
+#' @param nodebetas Number of covariates (betas), integer.
+#' 
+#' This function generates the following files:
+#' - Times_k_output.csv, which contains the unique event times for the site
+#' - Beta_local_k.csv, which contains the local beta estimate
+#' - Vk_k.csv, which contains the variance-covariance matrix
+#' - Number_of_subjects_site_k.csv, which contains the total number of subjects at the site
+
 data_event_times <- function(man_wd=-1,nodeid=-1,nodebetas=-1) {
   
   manualwd <- man_wd
@@ -54,6 +68,7 @@ data_event_times <- function(man_wd=-1,nodeid=-1,nodebetas=-1) {
   res.cox <- coxph(formula, node_data)
   write.csv(coef(res.cox), file=paste0("Beta_local_",k,".csv"),row.names = FALSE,na="0")
   
+  # Get variance-covariance matrix
   Vk <- vcov(res.cox)
   write.csv(Vk, file=paste0("Vk_",k,".csv"),row.names = FALSE,na="")
   

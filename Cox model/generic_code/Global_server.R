@@ -4,17 +4,15 @@
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
 
-# Includes
-library("survival")
-library("survminer")
-library("MASS")
+# Loading packages and setting up core variables --------------------------
+library("survival")          # Contains the core survival analysis routines                      
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
 manualwd <- -1
 
 # Number of parameters (covariates)
-nbBetas <- 10 # Input the number of betas here
+nbBetas <- ...    # Input the number of betas here
 
 if (manualwd != 1) {
   
@@ -40,6 +38,8 @@ if (manualwd != 1) {
 
 # ------------------------- CODE STARTS HERE ------------------------
 
+# Calculate number of data nodes from files fiting the pattern in the working directory
+# This assumes unique event times outputs have a name like Times_[[:digit:]]+_output.csv
 K=length(list.files(pattern="Times_[[:digit:]]+_output.csv"))
 
 # First step: initialization
@@ -54,10 +54,10 @@ if (!file.exists("Global_times_output.csv")) {
   # Combine and get global times
   combined_times <- do.call(c, lapply(times_list, function(df) unlist(df)))
   Times_list <- sort(unique(combined_times))
-  
   write.csv(Times_list, file="Global_times_output.csv", row.names = FALSE)
   
-  # Here, we try the inverse variance method for beta initial. If it fails, beta is initialized with a simple average.
+  # Here, we try the inverse variance method for beta initialization.
+  # If it fails (singular matrix), beta is initialized with a simple average.
   tryCatch({
     Bk_list <- list()
     Vk_list <- list()
@@ -73,7 +73,7 @@ if (!file.exists("Global_times_output.csv")) {
     # Initialize the sums
     Vk_inv_sum <- matrix(0, nrow=nrow(Vk_inv_list[[1]]), ncol=ncol(Vk_inv_list[[1]]))
     Vk_inv_Bk_sum <- matrix(0, nrow=nrow(Vk_inv_list[[1]]), ncol=ncol(Bk_list[[1]]))
-    
+
     # Sum the matrices
     for (k in 1:K) {
       Vk_inv_sum <- Vk_inv_sum + Vk_inv_list[[k]]
@@ -81,11 +81,10 @@ if (!file.exists("Global_times_output.csv")) {
     }
     
     beta <- t(Vk_inv_Bk_sum) %*% solve(Vk_inv_sum)
-    write.csv(t(beta), file="Beta_1_output.csv", row.names = FALSE)
+    write.csv(t(beta), file="Beta_0_output.csv", row.names = FALSE)
     
   }, error = function(e) {
-    # Alternative actions in case of failure
-    message("Initial beta estimate done with simple averaging method, as an error occured trying the inverse variance weighted initial estimator.\n", e$message)
+    message("Warning: Initial beta estimate done with simple averaging method, as an error occured trying the inverse variance weighted initial estimator.\n", e$message)
     
     beta_sum <- matrix(0, nbBetas, 1)
     total_subjects <- 0
@@ -96,8 +95,9 @@ if (!file.exists("Global_times_output.csv")) {
     }
     beta <- beta_sum/total_subjects
     
-    write.csv(beta, file="Beta_1_output.csv", row.names = FALSE)
+    write.csv(beta, file="Beta_0_output.csv", row.names = FALSE)
   })
+  
 }
 
 # Iterations: Calculate derivatives and new beta
@@ -109,11 +109,13 @@ if (file.exists("sumExp1_output_1.csv") ) {
   ite <- max(numbers)
   
   # First iteration - some more initialization
-  if (ite == 1){
+  if (ite == 0){
+    ite <- ite + 1
+    
     sumZrGlobal <- 0
     
     for(i in 1:K){
-      normDik <- read.csv(paste0("Dik", i, ".csv"), header = FALSE, blank.lines.skip = FALSE)
+      normDik <- read.csv(paste0("normDik", i, ".csv"), header = FALSE, blank.lines.skip = FALSE)
       if(i == 1){
         normDikGlobal <- matrix(0, nrow = nrow(normDik)-1, ncol = 1)
       }
@@ -167,7 +169,7 @@ if (file.exists("sumExp1_output_1.csv") ) {
     Norm_Times_ZrExp_Divided_by_Exp <- do.call(cbind, replicate(nbBetas, normDikGlobal, simplify = FALSE)) * ZrExp_Divided_by_Exp
     sum_Norm_Times_ZrExp_Divided_by_Exp <- colSums(Norm_Times_ZrExp_Divided_by_Exp)
     
-    lr_beta = sumZrGlobal - sum_Norm_Times_ZrExp_Divided_by_Exp
+    lr_beta <- sumZrGlobal - sum_Norm_Times_ZrExp_Divided_by_Exp
     
     # Calculate second derivative
     lrq_beta <- matrix(NA, nrow = nbBetas, ncol = nbBetas)
@@ -185,11 +187,18 @@ if (file.exists("sumExp1_output_1.csv") ) {
       }
     }
     
-    # Calculate new beta
-    lrq_beta_inv <- ginv(lrq_beta) # Inverse de la matrice: solve(lrq_beta), ginv = pseudoinvers
-    betaT <- matrix(as.numeric(lr_beta), nrow = nbBetas, ncol = 1)
+    # Try to inverse matrix with solve()
+    # if it fails (singular matrix), use the pseudo inverse ginv()
+    tryCatch({
+      lrq_beta_inv <- solve(lrq_beta)
+    }, error = function(e) {
+      message("Warning: Pseudo inverse used to invert the matrix.\n", e$message)
+      lrq_beta_inv <- ginv(lrq_beta)
+    })
     
-    beta <- beta - (lrq_beta_inv %*% betaT)
+    lr_beta <- matrix(as.numeric(lr_beta), nrow = nbBetas, ncol = 1)
+    
+    beta <- beta - (lrq_beta_inv %*% lr_beta)
     
     # Write in csv to max_number+1
     write.csv(beta, file=paste0("Beta_", ite+1, "_output.csv"), row.names = FALSE)

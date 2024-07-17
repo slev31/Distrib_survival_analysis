@@ -8,7 +8,20 @@
 library("survival")
 library("survminer")
 
-# Second function --- Calculate Dik, Rik, normDik and sumZr
+#' @title parameters_sites
+#'
+#' @description This function calculates Dik and Rik, which are the index sets of subjects with observed events and at risk for the event at the i-th distinct event time.
+#' @description This function also calculates parameters that stem from Dik and Rik.
+#'
+#' @param man_wd Parameter for manual working directory setting, integer.
+#' @param nodeid Site number, integer.
+#' @param nodebetas Number of covariates (betas), integer.
+#' 
+#' This function generates the following files:
+#' - normDikk.csv, which is the number of events at the i-th distinct event time.
+#' - Rikk.csv, which is the risk set.
+#' - sumZrk.csv, which is the sum of the covariates of subjects that had an even the i-th distinct event time.
+
 parameters_sites <- function(man_wd=-1,nodeid=-1, nodebetas=-1) {
   
   manualwd <- man_wd
@@ -43,6 +56,7 @@ parameters_sites <- function(man_wd=-1,nodeid=-1, nodebetas=-1) {
   
   # ------------------------- CODE STARTS HERE ------------------------
   
+  # Read data
   node_data <- read.csv(paste0("Data_site_", k, ".csv"))
   Dlist <- read.csv("Global_times_output.csv")
   Dlist <- Dlist$x
@@ -64,7 +78,7 @@ parameters_sites <- function(man_wd=-1,nodeid=-1, nodebetas=-1) {
     Rik[[i]] <- which(node_data$time >= Dlist[i])
   }
   
-  # Sum of covariates associated with subjects with observed events at time i (Dik)
+  # Sum of covariates associated with subjects with observed events at time i
   sumZr <- matrix(0, nrow = length(Dik), ncol = nbBetas)
   for (i in seq_along(Dik)) {
     indices <- Dik[[i]]
@@ -94,7 +108,7 @@ parameters_sites <- function(man_wd=-1,nodeid=-1, nodebetas=-1) {
   df[is.na(df)] <- ""
   
   # Norm Dik
-  normDikGlobal <- apply(df, 1, function(row) sum(row != ""))
+  normDik <- apply(df, 1, function(row) sum(row != ""))
   
   # Convert Rik
   max_length <- max(sapply(Rik, function(x) if (is.null(x)) 0 else length(x)))
@@ -102,7 +116,7 @@ parameters_sites <- function(man_wd=-1,nodeid=-1, nodebetas=-1) {
   df2 <- as.data.frame(do.call(rbind, padded_rows))
   
   # Write
-  write.csv(normDikGlobal, file=paste0("Dik",k,".csv"),row.names = FALSE,na="")
+  write.csv(normDik, file=paste0("normDik",k,".csv"),row.names = FALSE,na="")
   write.csv(df2, file=paste0("Rik",k,".csv"),row.names = FALSE,na="")
   write.csv(sumZr, file=paste0("sumZr",k,".csv"),row.names = FALSE,na="")
 
