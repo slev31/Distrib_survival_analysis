@@ -9,12 +9,12 @@ library("survival")
 library("survminer")
 library("dplyr")
 
-numberOfSites <- 3  # Input here the number of sites
+numberOfSites <- 2  # Input here the number of sites
 
 ### ALL VALUES HERE SHOULD BE THE SAME FOR EVERY SITE
 
 lower_bound <- 0      # Input here the lower bound, or lowest value (leave a 0 if it is unknown)
-upper_bound <- 100    # Input here the upper bound, or highest value
+upper_bound <- 1000   # Input here the upper bound, or highest value
 
 step <- 1             # Input here the step size (distance between values where intervals start)
 interval_size <- 1    # Input here the initial interval_size

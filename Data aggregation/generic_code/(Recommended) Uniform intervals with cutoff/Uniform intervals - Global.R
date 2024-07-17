@@ -1,5 +1,5 @@
-###############  DATA AGGREGATION #####################
-############### AVERAGED INTERVALS ####################
+###############  DATA AGGREGATION ####################
+############### UNIFORM INTERVALS ####################
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
@@ -8,9 +8,6 @@
 library("survival")
 library("survminer")
 library("dplyr")
-
-siteNb <- ...           # Input here the site number
-nbDataGrouped <- ...    # Input here the number of subjects grouped together
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -40,31 +37,35 @@ if (manualwd != 1) {
 
 ### Code starts here
 
-data1 <- read.csv(paste0("Data_site_", siteNb, ".csv"))
+K=length(list.files(pattern="Cutoff_site_[[:digit:]]+.csv"))
 
-data1 <- data1[order(data1$time), ]
-data1 <- data1 %>%
-  mutate(group = (row_number() - 1) %/% nbDataGrouped + 1)
-
-group_counts <- data1 %>%
-  group_by(group) %>%
-  summarize(count = n()) %>%
-  ungroup()
-
-# Merge the last small group with the previous one if needed
-last_group <- max(data1$group)
-if (group_counts$count[last_group] < nbDataGrouped) {
-  data1 <- data1 %>%
-    mutate(group = if_else(group == last_group, last_group - 1, group))
+if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Interval_size_site_", K, ".csv"))) {
+  
+  min_cutoff <- Inf
+  for(k in 1:K){
+    
+    cutoff_local <- read.csv(paste0("Cutoff_site_", K, ".csv"))
+    if (cutoff_local < min_cutoff){
+      min_cutoff <- cutoff_local
+    }
+  }
+  
+  write.csv(min_cutoff, file="Global_cutoff.csv", row.names = FALSE)
+  
+} else if (file.exists(paste0("Interval_size_site_", K, ".csv"))){
+  
+  max_size <- 0
+  for(k in 1:K){
+    
+    size_local <- read.csv(paste0("Interval_size_site_", K, ".csv"))
+    if (size_local > max_size){
+      max_size <- size_local
+    }
+  }
+  
+  write.csv(max_size, file="Global_interval_size.csv", row.names = FALSE)
+  
 }
-
-data1 <- data1 %>%
-  group_by(group) %>%
-  mutate(time = mean(time)) %>%
-  ungroup() %>%
-  select(-group)
-
-write.csv(data1, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.names = FALSE)
 
 ## Remove all environment variables. 
 ## If you want to see the variable that were created, simply don't execute that line (and clear them manually after)

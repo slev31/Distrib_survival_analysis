@@ -9,13 +9,13 @@ library("survival")
 library("survminer")
 library("dplyr")
 
-siteNb <- 1           # Input here the site number
-nbDataGrouped <- 5    # Input here the number of subjects grouped together
+siteNb <- ...           # Input here the site number
+nbDataGrouped <- ...    # Input here the number of subjects grouped together
 
 ### ALL VALUES HERE SHOULD BE THE SAME FOR EVERY SITE
 
-lower_bound <- 0      # Input here the lower bound, or lowest value (leave a 0 if it is unknown)
-upper_bound <- 100    # Input here the upper bound, or highest value
+lower_bound <- ...      # Input here the lower bound, or lowest value (leave a 0 if it is unknown)
+upper_bound <- ...      # Input here the upper bound, or highest value
 
 step <- 1             # Input here the step size (distance between values where intervals start)
 interval_size <- 1    # Input here the initial interval_size

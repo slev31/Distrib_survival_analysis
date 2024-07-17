@@ -1,0 +1,16 @@
+Order of execution:
+
+1. Uniform intervals - Local
+: Compute local cutoff
+
+2. Uniform intervals - Global
+: Compute global cutoff
+
+3. Uniform intervals - Local
+: Compute local interval size
+
+4. Uniform intervals - Global
+: Compute global interval size
+
+5. Uniform intervals - Local
+: Generate grouped data
