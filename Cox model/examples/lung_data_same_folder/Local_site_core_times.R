@@ -54,6 +54,9 @@ data_event_times <- function(man_wd=-1,nodeid=-1,nodebetas=-1) {
   res.cox <- coxph(formula, node_data)
   write.csv(coef(res.cox), file=paste0("Beta_local_",k,".csv"),row.names = FALSE,na="0")
   
+  Vk <- vcov(res.cox)
+  write.csv(Vk, file=paste0("Vk_",k,".csv"),row.names = FALSE,na="")
+  
   # Get number of data for beta initialization
   write.csv(nrow(node_data), file=paste0("Number_of_subjects_site_",k,".csv"),row.names = FALSE,na="0")
 

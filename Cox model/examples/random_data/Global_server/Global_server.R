@@ -57,17 +57,47 @@ if (!file.exists("Global_times_output.csv")) {
   
   write.csv(Times_list, file="Global_times_output.csv", row.names = FALSE)
   
-  # Beta initialization
-  beta_sum <- matrix(0, nbBetas, 1)
-  total_subjects <- 0
-  for (k in 1:K) {
-    local_subjects <- as.integer(read.csv(paste0("Number_of_subjects_site_", k, ".csv")))
-    total_subjects <- total_subjects + local_subjects
-    beta_sum <- beta_sum + local_subjects * as.matrix(read.csv(paste0("Beta_local_", k, ".csv")))
-  }
-
-  beta <- beta_sum/total_subjects
-  write.csv(beta, file="Beta_1_output.csv", row.names = FALSE)
+  # Here, we try the inverse variance method for beta initial. If it fails, beta is initialized with a simple average.
+  tryCatch({
+    Bk_list <- list()
+    Vk_list <- list()
+    Vk_inv_list <- list()
+    
+    # Read matrices from files and calculate inverses
+    for (k in 1:K) {
+      Bk_list[[k]] <- as.matrix(read.csv(paste0("Beta_local_", k, ".csv")))
+      Vk_list[[k]] <- as.matrix(read.csv(paste0("Vk_", k, ".csv")))
+      Vk_inv_list[[k]] <- solve(Vk_list[[k]])
+    }
+    
+    # Initialize the sums
+    Vk_inv_sum <- matrix(0, nrow=nrow(Vk_inv_list[[1]]), ncol=ncol(Vk_inv_list[[1]]))
+    Vk_inv_Bk_sum <- matrix(0, nrow=nrow(Vk_inv_list[[1]]), ncol=ncol(Bk_list[[1]]))
+    
+    # Sum the matrices
+    for (k in 1:K) {
+      Vk_inv_sum <- Vk_inv_sum + Vk_inv_list[[k]]
+      Vk_inv_Bk_sum <- Vk_inv_Bk_sum + Vk_inv_list[[k]] %*% Bk_list[[k]]
+    }
+    
+    beta <- t(Vk_inv_Bk_sum) %*% solve(Vk_inv_sum)
+    write.csv(t(beta), file="Beta_1_output.csv", row.names = FALSE)
+    
+  }, error = function(e) {
+    # Alternative actions in case of failure
+    message("Initial beta estimate done with simple averaging method, as an error occured trying the inverse variance weighted initial estimator.\n", e$message)
+    
+    beta_sum <- matrix(0, nbBetas, 1)
+    total_subjects <- 0
+    for (k in 1:K) {
+      local_subjects <- as.integer(read.csv(paste0("Number_of_subjects_site_", k, ".csv")))
+      total_subjects <- total_subjects + local_subjects
+      beta_sum <- beta_sum + local_subjects * as.matrix(read.csv(paste0("Beta_local_", k, ".csv")))
+    }
+    beta <- beta_sum/total_subjects
+    
+    write.csv(beta, file="Beta_1_output.csv", row.names = FALSE)
+  })
 }
 
 # Iterations: Calculate derivatives and new beta
