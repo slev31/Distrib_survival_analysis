@@ -12,10 +12,10 @@ library("survival")          # Contains the core survival analysis routines
 manualwd <- -1
 
 # If you want to override the node numbering based on filename, input 0 or a positive integer here
-manualk <- ...    # Input the site number here
+manualk <- ...
 
 # Number of parameters (covariates)
-nbBetas <- ...    # Input the number of betas here
+nbBetas <- ...
 
 # No modifications should be required below this point
 ######################################################
@@ -80,12 +80,12 @@ if (k >= 0) {
     data_event_times(manualwd, k, nbBetas)
     
     # If global times file exists -- call second function to calculate params
-  } else if (!file.exists(paste0("Dik", manualk ,".csv"))) {
+  } else if (!file.exists(paste0("normDik", manualk ,".csv"))) {
     source("Local_site_core_params.R")
     parameters_sites(manualwd, k, nbBetas)
     
     source("Local_site_core_betas.R")
-    calculate_local_values(manualwd, k, nbBetas, 1)
+    calculate_local_values(manualwd, k, nbBetas, 0)
     
     # If beta file exists --- call third function to calculate aggregates
   } else if (file.exists("Beta_0_output.csv")) {

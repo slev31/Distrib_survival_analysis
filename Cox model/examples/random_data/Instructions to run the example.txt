@@ -6,8 +6,6 @@ There are many ways to run R code. The proposed instructions here are focusing o
 :::::: INSTALLING THE REQUIRED PACKAGES ::::::
 : The examples require the use a package not present in the base installation :
 - survival : https://cran.r-project.org/web/packages/survival/index.html https://cran.r-project.org/web/packages/survival/survival.pdf
-- survminer : https://cran.r-project.org/web/packages/survminer/index.html https://cran.r-project.org/web/packages/survminer/survminer.pdf
-- MASS : https://cran.r-project.org/web/packages/MASS/index.html https://cran.r-project.org/web/packages/MASS/MASS.pdf
 
 : The examples will be easier to explore and adapt/change if the package "this.path" is also available.
 - this.path : https://cran.r-project.org/package=this.path https://cran.r-project.org/web/packages/this.path/this.path.pdf
@@ -21,15 +19,16 @@ There are many ways to run R code. The proposed instructions here are focusing o
 :::::: INSTALLING THE EXAMPLE ::::::
 1)	Unpack one of the example folders on one of your drives
 
-
 :::::: EXECUTING THE DISTRIBUTED CODE ::::::
 *** Make sure R studio is not currently running and close it if it is.
 *** If you are not able to automatically set your working directory, manually set the variable manualwd = 1 in Data_node_call_log-reg.R and Coord_node_call_iter_log-reg.R
+
 In the following procedure, x represents the number of the local site, and k represents the iteration number.
+
 1) 	Run the local r file (Local_site_call_x.R) for each data node to compute local times and local beta estimates
-2) 	Take each output file generated ("Times_x_output.csv", "Beta_local_x.csv" and "Number_of_subjects_site_x.csv") and copy them in the coordination node ("Global_server") folder
+2) 	Take each output file generated ("Times_x_output.csv", "Beta_local_x.csv", "Number_of_subjects_site_x.csv" and "Vk_x.csv") and copy them in the coordination node ("Global_server") folder
 3)	Run the coordination r file (Global_server.R)
-4)	Take the output file generated ("Global_times_output.csv" and "Beta_1_output.csv") and copy it in each of the three data node folders
+4)	Take the output file generated ("Global_times_output.csv" and "Beta_0_output.csv") and copy it in each of the three data node folders
 
 For the first iteration:
 5) 	Run the local r file (Local_site_call_x.R) for each data node to compute local parameters and local aggregates used for derivatives

@@ -12,7 +12,7 @@ library("survival")          # Contains the core survival analysis routines
 manualwd <- -1
 
 # Number of parameters (covariates)
-nbBetas <- ...    # Input the number of betas here
+nbBetas <- ...     # Input the number of betas here
 
 if (manualwd != 1) {
   
@@ -102,15 +102,15 @@ if (!file.exists("Global_times_output.csv")) {
 
 # Iterations: Calculate derivatives and new beta
 if (file.exists("sumExp1_output_1.csv") ) {
-  
   # Must use the last available data
   files <- list.files(pattern = "Beta_\\d+_output.csv")
   numbers <- as.numeric(gsub("Beta_(\\d+)_output.csv", "\\1", files))
   ite <- max(numbers)
   
+  ite <- ite + 1
+  
   # First iteration - some more initialization
-  if (ite == 0){
-    ite <- ite + 1
+  if (ite == 1){
     
     sumZrGlobal <- 0
     
@@ -133,7 +133,7 @@ if (file.exists("sumExp1_output_1.csv") ) {
   if (file.exists((paste0("sumExp", K, "_output_", ite, ".csv")))){
     
     # Get old beta
-    beta <-  read.csv(paste0("Beta_", ite, "_output.csv"))
+    beta <-  read.csv(paste0("Beta_", ite-1, "_output.csv"))
     
     # Read files and sum values
     for(i in 1:K){
@@ -148,7 +148,7 @@ if (file.exists("sumExp1_output_1.csv") ) {
       sumZqZrExp <- read.csv(paste0("sumZqZrExp", i, "_output_", ite, ".csv"), header = FALSE, blank.lines.skip = FALSE)
       sumZqZrExp <- array(as.numeric(as.matrix(sumZqZrExp[-1, ])), dim = c(nbBetas, nbBetas, ncol(sumZqZrExp)))
       
-      # Initialise global matrices if first iteration
+      # Initialize global matrices if first iteration
       if(i == 1){
         sumExpGlobal <- matrix(0, nrow = nrow(sumExp), ncol = ncol(sumExp))
         sumZqExpGlobal <- matrix(0, nrow = nrow(sumZqExp), ncol = ncol(sumZqExp))
@@ -201,7 +201,7 @@ if (file.exists("sumExp1_output_1.csv") ) {
     beta <- beta - (lrq_beta_inv %*% lr_beta)
     
     # Write in csv to max_number+1
-    write.csv(beta, file=paste0("Beta_", ite+1, "_output.csv"), row.names = FALSE)
+    write.csv(beta, file=paste0("Beta_", ite, "_output.csv"), row.names = FALSE)
     
   } else {
     print("New values must be computed locally in order to do another iteration.")
