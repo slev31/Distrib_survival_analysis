@@ -3,12 +3,6 @@ There are many ways to run R code. The proposed instructions here are focusing o
 :::::: INSTALLING R and R STUDIO ::::::
 1)	Go to the page : https://posit.co/download/rstudio-desktop/ and follow the instructions for your operating system
 
-:::::: INSTALLING THE REQUIRED PACKAGES ::::::
-: The examples require the use a package not present in the base installation :
-- survival : https://cran.r-project.org/web/packages/survival/index.html https://cran.r-project.org/web/packages/survival/survival.pdf
-- survminer : https://cran.r-project.org/web/packages/survminer/index.html https://cran.r-project.org/web/packages/survminer/survminer.pdf
-- dplyr : https://cran.r-project.org/web/packages/dplyr/index.html https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
-
 : The examples will be easier to explore and adapt/change if the package "this.path" is also available.
 - this.path : https://cran.r-project.org/package=this.path https://cran.r-project.org/web/packages/this.path/this.path.pdf
 - Yet this is NOT required and you can safely ignore any warning about this is if you want to use the examples "as-is".
@@ -26,12 +20,14 @@ There are many ways to run R code. The proposed instructions here are focusing o
 *** Make sure R studio is not currently running and close it if it is.
 *** If you are not able to automatically set your working directory, manually set the variable manualwd = 1
 
+Before executing the code, make sure the parameters in "Parameters.csv" are set to the right value. For more explaintion on these parameters, see document Data_aggregation_Brief_Summary.
+
 1)	In all the local files, set the parameter percent_excluded to the percentage of values you want to exclude.
-2)	In the file "Uniform intervals - Local - sitex.R", select all the code and execute it for all sites. The cutoff value will be computed and saved in a CSV.
-3)	In the file "Uniform intervals - Global", select all the code and execute it. The global cutoff value will be computed and saved in a CSV.
-4)	In the file "Uniform intervals - Local - sitex.R", select all the code and execute it for all sites. The minimum interval size will be computed and saved in a CSV.
-5)	In the file "Uniform intervals - Global", select all the code and execute it. The global interval size will be computed and saved in a CSV.
-6)	In the file "Uniform intervals - Local - sitex.R", select all the code and execute it for all sites. The original data with modified times will be saved in a CSV.
+2)	In the file "Uniform intervals - Local - sitex.R", select all the code and execute it for all sites. The cutoff value will be computed and saved in a CSV ("Cutoff_site_x.csv").
+3)	In the file "Uniform intervals - Global", select all the code and execute it. The global cutoff value will be computed and saved in a CSV ("Global_cutoff.csv").
+4)	In the file "Uniform intervals - Local - sitex.R", select all the code and execute it for all sites. The minimum interval size will be computed and saved in a CSV ("Interval_size_site_x.csv").
+5)	In the file "Uniform intervals - Global", select all the code and execute it. The global interval size will be computed and saved in a CSV ("Global_interval_size.csv").
+6)	In the file "Uniform intervals - Local - sitex.R", select all the code and execute it for all sites. The original data with modified times will be saved in a CSV ("Grouped_Data_site_x.csv").
 7)	This data can now be used for a privacy-preserving Cox model.
 
 

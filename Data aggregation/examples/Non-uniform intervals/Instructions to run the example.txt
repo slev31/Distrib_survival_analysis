@@ -3,12 +3,6 @@ There are many ways to run R code. The proposed instructions here are focusing o
 :::::: INSTALLING R and R STUDIO ::::::
 1)	Go to the page : https://posit.co/download/rstudio-desktop/ and follow the instructions for your operating system
 
-:::::: INSTALLING THE REQUIRED PACKAGES ::::::
-: The examples require the use a package not present in the base installation :
-- survival : https://cran.r-project.org/web/packages/survival/index.html https://cran.r-project.org/web/packages/survival/survival.pdf
-- survminer : https://cran.r-project.org/web/packages/survminer/index.html https://cran.r-project.org/web/packages/survminer/survminer.pdf
-- dplyr : https://cran.r-project.org/web/packages/dplyr/index.html https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
-
 : The examples will be easier to explore and adapt/change if the package "this.path" is also available.
 - this.path : https://cran.r-project.org/package=this.path https://cran.r-project.org/web/packages/this.path/this.path.pdf
 - Yet this is NOT required and you can safely ignore any warning about this is if you want to use the examples "as-is".
@@ -26,9 +20,11 @@ There are many ways to run R code. The proposed instructions here are focusing o
 *** Make sure R studio is not currently running and close it if it is.
 *** If you are not able to automatically set your working directory, manually set the variable manualwd = 1
 
-1)	In the file "Non-uniform intervals - Local - sitex.R", select all the code and execute it, for all sites. A new file will be generated for every site, which contains a matrix.
-2)	In the file "Non-uniform intervals - Global.R", select all the code and execute it. A new file will be generated, which contains the border values of the intervals.
-3)	Select and execute the code of the file "Non-uniform intervals - Local -sitex.R", for all sites. A new file will be generated for every site, which contains the original data with modified times.
+Before executing the code, make sure the parameters in "Parameters.csv" are set to the right value. For more explaintion on these parameters, see document Data_aggregation_Brief_Summary.
+
+1)	In the file "Non-uniform intervals - Local - sitex.R", select all the code and execute it, for all sites. A new file will be generated for every site ("Binary_output_site_x.csv"), which contains a matrix.
+2)	In the file "Non-uniform intervals - Global.R", select all the code and execute it. A file will be generated ("Global_intervals.csv"), which contains the border values of the intervals.
+3)	Select and execute the code of the file "Non-uniform intervals - Local -sitex.R", for all sites. A file will be generated for every site, which contains the original data with modified times ("Grouped_Data_site_x.csv").
 4)	This data can now be used for a privacy preserving Cox model.
 
 

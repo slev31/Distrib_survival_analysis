@@ -4,21 +4,18 @@
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
 
-# Includes
-library("survival")
-library("survminer")
-library("dplyr")
-
+# Number of sites
 numberOfSites <- ...  # Input here the number of sites
 
-### ALL VALUES HERE SHOULD BE THE SAME FOR EVERY SITE
+# Import parameters (edit directly in Parameters.csv)
+# See Data_aggregation_Brief_Summary for explanation
+params <- read.csv("Parameters.csv", header = FALSE)
 
-lower_bound <- ...      # Input here the lower bound, or lowest value (leave a 0 if it is unknown)
-upper_bound <- ...      # Input here the upper bound, or highest value
-
-step <- 1             # Input here the step size (distance between values where intervals start)
-interval_size <- 1    # Input here the initial interval_size
-increase <- 1         # Input here the interval_size increase
+lower_bound <- params[params$V1 == "lower_bound", "V2"]
+upper_bound <- params[params$V1 == "upper_bound", "V2"]
+step <- params[params$V1 == "step", "V2"]
+interval_size <- params[params$V1 == "interval_size", "V2"]
+increase <- params[params$V1 == "increase", "V2"]
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -48,16 +45,21 @@ if (manualwd != 1) {
 
 ### Code starts here
 
-for (i in 1:numberOfSites){
+if (step < interval_size){
+  print("Warning: The value of 'step' is smaller than the value of 'interval_size', which may cause suboptimal partionning.")
+}
+
+# Aggregate binary output matrices from all sites
+for (i in 1:numberOfSites) {
   binary_output_site <- as.matrix(read.csv(paste0("Binary_output_site_", i, ".csv")))
-  if (i==1){
+  if (i == 1) {
     binary_output_global <- binary_output_site
   } else {
     binary_output_global <- binary_output_global + binary_output_site
   }
 }
 
-# while initialization
+# Initialize variables for finding intervals
 intervals <- list()
 initial_interval_size <- interval_size
 value <- lower_bound
@@ -65,16 +67,23 @@ nbRows <- nrow(binary_output_global)
 done <- FALSE
 position <- 1
 
+# Loop through positions in the binary output matrix to find valid intervals
+# Check Data_aggregation_Brief_Summary for a clearer explanation of the algorithm
 while (position < ncol(binary_output_global)) {
   for (i in 1:nbRows) {
-    if (done == FALSE){
+    if (!done) {
+      # Check if the interval is valid across all sites
       if (binary_output_global[i, position] == numberOfSites) {
-        value <- value + (initial_interval_size + (i-1) * increase)
+        # Calculate the interval start value and append it to the list
+        value <- value + (initial_interval_size + (i - 1) * increase)
         intervals <- append(intervals, value)
-        position <- floor((value - lower_bound)/step)
+        
+        # Update the next position to check for the next interval
+        position <- floor((value - lower_bound) / step)
         done <- TRUE
       }
-      if (i == nbRows){ # If nothing else, stop the loop
+      # If reached the last row without finding a valid interval, exit the loop
+      if (i == nbRows) {
         position <- ncol(binary_output_global)
       }
     }
@@ -82,8 +91,8 @@ while (position < ncol(binary_output_global)) {
   done <- FALSE
 }
 
-# Add last interval, and merge the last two together
-intervals <- append(intervals,upper_bound+1)
+# Add the last interval and merge the last two together
+intervals <- append(intervals, upper_bound + 1)
 intervals <- intervals[-(length(intervals) - 1)]
 
 write.csv(intervals, file=paste0("Global_intervals.csv"), row.names = FALSE)

@@ -8,3 +8,5 @@ Order of execution:
 
 3. Non-uniform intervals - Local
 : Split data according to partition
+
+*** Before executing the code, make sure the parameters in "Parameters.csv" are set to the right value. For more explaintion on these parameters, see document Data_aggregation_Brief_Summary.
