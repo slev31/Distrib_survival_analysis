@@ -42,7 +42,7 @@ betas <- c(-0.6, 0.5, -0.4)  # Adjust these values
 N <- 1000  # When N is big, the model coefficients are close to betas
 
 # Generate custom covariates
-set.seed(129)
+set.seed(123)
 
 # Distribution of covariates
 X1 <- rnorm(N, mean=0, sd=0.5)
@@ -59,7 +59,8 @@ eta <- betas[1] * X1 + betas[2] * X2 + betas[3] * X3
 baseline_hazard <- 0.058  # Adjust these values
 
 # Generate survival times
-survival_times <- rexp(N, rate = baseline_hazard * exp(eta)) * 3  # Increased multiplier for spread
+U <- runif(N, min=0, max=1)
+survival_times <- (-log(U))/(baseline_hazard*exp(eta)) * 1  # Increased multiplier for spread
 
 # Transformation to shift the peak of the survival time distribution
 shift_factor <- 6  # Adjust this factor to move the peak
@@ -74,15 +75,12 @@ event_indicator <- as.numeric(transformed_survival_times <= censoring_times)
 
 # Combine into a data frame
 simdata <- data.frame(
-  time = observed_times,
+  time = round(observed_times),
   status = event_indicator,
   X1 = X1,
   X2 = X2,
   X3 = X3
 )
-
-# Inspect the first 10 rows of the generated data
-head(simdata, 10)
 
 # Fit a Cox proportional hazards model to the generated data
 model <- coxph(Surv(time, status) ~ X1 + X2 + X3, data = simdata)

@@ -30,7 +30,7 @@ if (manualwd != 1) {
   print("The automated working directory setup has been bypassed. If there is an error, this might be the cause.")
 }
 
-### Code starts here
+# ------------------------- CODE STARTS HERE ------------------------
 
 # Calculate number of data nodes from files fitting the pattern in the working directory
 # This assumes cutoff times outputs have a name like Cutoff_site_[[:digit:]]+.csv

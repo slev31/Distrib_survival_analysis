@@ -43,7 +43,7 @@ if (manualwd != 1) {
   print("The automated working directory setup has been bypassed. If there is an error, this might be the cause.")
 }
 
-### Code starts here
+# ------------------------- CODE STARTS HERE ------------------------
 
 if (step < interval_size){
   print("Warning: The value of 'step' is smaller than the value of 'interval_size', which may cause suboptimal partionning.")

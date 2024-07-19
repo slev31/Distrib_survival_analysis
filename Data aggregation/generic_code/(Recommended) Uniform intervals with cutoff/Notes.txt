@@ -15,4 +15,13 @@ Order of execution:
 5. Uniform intervals - Local
 : Generate grouped data
 
-*** Before executing the code, make sure the parameters in "Parameters.csv" are set to the right value. For more explaintion on these parameters, see document Data_aggregation_Brief_Summary.
+*** Before executing the code, make sure the parameters in "Parameters.csv" are set to the right value (see next section).
+
+:::::: PARAMETERS TO AJUST ::::::
+
+The parameters should be determined by the central server and must not be modified by the local sites. The key parameters are as follows:
+
+- nbDataGrouped : This is the number of subjects that will be grouped together. The recommended value is 5.
+- lower_bound : This is the lowest value possible across all datasets. The default value is 0.
+- upper_bound : This is the highest value possible across all datasets or the length of the study. It is preferable to overestimate this value to ensure coverage.
+- percent_excluded : This is the amount (in percent) of values that will be excluded to determine the interval size. The recommended value is 2 (%). The bigger the dataset, the smaller the percentage should be.

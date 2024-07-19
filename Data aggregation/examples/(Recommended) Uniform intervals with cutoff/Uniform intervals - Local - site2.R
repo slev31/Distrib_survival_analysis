@@ -41,7 +41,7 @@ if (manualwd != 1) {
   print("The automated working directory setup has been bypassed. If there is an error, this might be the cause.")
 }
 
-### Code starts here
+# ------------------------- CODE STARTS HERE ------------------------
 
 #' This function updates the values of time by determining in which interval each value falls 
 #' into and then replacing the original time value with the corresponding interval number.
