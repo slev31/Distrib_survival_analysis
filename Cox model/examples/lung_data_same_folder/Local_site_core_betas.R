@@ -95,10 +95,12 @@ calculate_local_values <- function(man_wd=-1,nodeid=-1, nodebetas=-1, nodenumber
       z_exp_beta_z <-  z_matrix * exp_beta_z_matrix
       
       # 3 - zr*zq*exp(beta*z)
-      outer_product <- outer(z_matrix, t(z_matrix), "*")
-      matrix_list <- lapply(1:nrow(outer_product), function(j) outer_product[j,,,j])
-      result_array <- array(unlist(matrix_list), dim = c(ncol(z_matrix), ncol(z_matrix), nrow(z_matrix)))
+      outer_product_list <- lapply(1:nrow(z_matrix), function(i) {
+        z_matrix[i, ] %*% t(z_matrix[i, ])
+      })
       
+      result_array <- array(unlist(outer_product_list), dim = c(ncol(z_matrix), ncol(z_matrix), nrow(z_matrix)))
+
       zr_zq_beta <- array(0, dim = c(ncol(z_matrix), ncol(z_matrix), nrow(z_matrix)))
       zr_zq_beta <- array(unlist(lapply(seq_along(exp_beta_z), function(u) exp_beta_z[u] * result_array[,,u])), dim(result_array))
       
