@@ -41,38 +41,50 @@ if (manualwd != 1) {
 # Read the CSV file for the specified site number and store it in 'data1'
 data1 <- read.csv(paste0("Data_site_", siteNb, ".csv"))
 
-# Order the data by the 'time' column
-data1 <- data1[order(data1$time), ]
-
-# Group the data into groups of 'nbDataGrouped' rows each
-# Create a new column 'group' which assigns a group number to each row
-data1 <- data1 %>%
-  mutate(group = (row_number() - 1) %/% nbDataGrouped + 1)
-
-# Calculate the number of rows in each group and store it in 'group_counts'
-group_counts <- data1 %>%
-  group_by(group) %>%
-  summarize(count = n()) %>%
-  ungroup()
-
-# Merge the last small group with the previous one if it has fewer rows than 'nbDataGrouped'
-last_group <- max(data1$group)
-if (group_counts$count[last_group] < nbDataGrouped) {
-  data1 <- data1 %>%
-    mutate(group = if_else(group == last_group, last_group - 1, group))
+# Function to create groups with at least nbDataGrouped rows where status == 1
+create_groups <- function(data, nbDataGrouped) {
+  data <- data %>%
+    arrange(time) %>%  # Ensure the data is ordered by time
+    mutate(group = 0)  # Initialize group column
+  
+  current_group <- 1
+  count_status_1 <- 0
+  
+  for (i in 1:nrow(data)) {
+    if (data$status[i] == 1) {
+      count_status_1 <- count_status_1 + 1
+    }
+    
+    data$group[i] <- current_group
+    
+    if (count_status_1 >= nbDataGrouped) {
+      current_group <- current_group + 1
+      count_status_1 <- 0
+    }
+  }
+  
+  # Merge the last small group with the previous one if needed
+  last_group <- max(data$group)
+  if (sum(data$group == last_group & data$status == 1) < nbDataGrouped) {
+    data <- data %>%
+      mutate(group = if_else(group == last_group, last_group - 1, group))
+  }
+  
+  return(data)
 }
 
-# For each group, calculate the mean 'time' and replace 'time' with the mean value
-# Remove the 'group' column after grouping
-data1 <- data1 %>%
+# Apply the function to create groups
+data1_grouped <- create_groups(data1, nbDataGrouped)
+
+# Calculate the mean 'time' for each group and replace 'time' with the mean value
+data1_grouped <- data1_grouped %>%
   group_by(group) %>%
   mutate(time = mean(time)) %>%
   ungroup() %>%
   select(-group)
 
-
-write.csv(data1, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.names = FALSE)
+write.csv(data1_grouped, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.names = FALSE)
 
 ## Remove all environment variables. 
 ## If you want to see the variable that were created, simply don't execute that line (and clear them manually after)
-rm(list = ls())
+#rm(list = ls())

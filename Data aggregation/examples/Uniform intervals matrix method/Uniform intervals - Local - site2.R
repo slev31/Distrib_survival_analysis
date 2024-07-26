@@ -1,10 +1,11 @@
-###############  DATA AGGREGATION ####################
-############### UNIFORM INTERVALS ####################
+##################  DATA AGGREGATION ######################
+################## UNIFORM INTERVALS ######################
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
 
-siteNb <- 2               # Input here the site number
+# Site number
+siteNb <- 2   # Input here the site number
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -39,6 +40,8 @@ params <- read.csv("Parameters.csv", header = FALSE)
 nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"]
 lower_bound <- params[params$V1 == "lower_bound", "V2"]
 upper_bound <- params[params$V1 == "upper_bound", "V2"]
+increase <- params[params$V1 == "increase", "V2"]
+interval_size <- increase
 percent_excluded <- params[params$V1 == "percent_excluded", "V2"]
 
 # ------------------------- CODE STARTS HERE ------------------------
@@ -64,17 +67,12 @@ modify_time <- function(data, intervals) {
   return(data)
 }
 
-# Read the data for the specified site number and sort it by 'time'
+# Read data
 data1 <- read.csv(paste0("Data_site_", siteNb, ".csv"))
 data1 <- data1[order(data1$time), ]
-array1 <- data1$time
 
 # First step: choose cutoff
 if (!file.exists("Global_cutoff.csv")) {
-  
-  # First check: make sure values are compatible
-  limits <- data.frame(start = array1[6], end = array1[length(array1) - 5])
-  write.csv(limits, paste0("start_end_values_site_", siteNb, ".csv"), row.names = FALSE)
   
   # Exclude the last values based on the percentage to be excluded
   num_rows <- nrow(data1)
@@ -87,41 +85,72 @@ if (!file.exists("Global_cutoff.csv")) {
   # Write the cutoff value to a CSV file
   write.csv(tail(array1_filtered, n = 1), file=paste0("Cutoff_site_", siteNb, ".csv"), row.names = FALSE)
   
-  # Second step: choose interval size
-} else if (!file.exists("Global_interval_size.csv")) { 
- 
-  # Read the global cutoff value
-  cutoff_value <- as.integer(read.csv("Global_cutoff.csv"))
-  position <- which.min(abs(array1 - cutoff_value))
+  # Second step: compute and send interval size matrix
+} else if (!file.exists("Global_intervals.csv")) {
   
+  cutoff_value <- as.integer(read.csv("Global_cutoff.csv"))
+  position <- which.min(abs(data1$time - cutoff_value))
   data1 <- data1[1:position,]
-  array1 <- data1$time[data1$status == 1]
   
-  # Calculate the interval size based on the maximum difference between points
-  differences1 <- abs(array1[1:(length(array1) - nbDataGrouped)] - array1[(nbDataGrouped + 1):length(array1)])
+  # Calculate the number of different interval types and the maximum number of intervals
+  # Different interval types depends of min, max, interval_size and increase
+  # Maximum number of intervals depends on min, max, the smallest interval size and the step
+  nbTypesOfIntervals <- (cutoff_value - lower_bound - interval_size) / increase
   
-  # Biggest difference is either the largest gap between values or gap between lower_bound and the first value
-  max_difference1 <- max(differences1, (array1[1+nbDataGrouped]-as.integer(lower_bound)))
+  # Initialize a binary output matrix to store results
+  binary_output_site1 <- matrix(0, nrow = nbTypesOfIntervals, 1)
   
-  # Write the interval size to a CSV file
-  write.csv(max_difference1, file=paste0("Interval_size_site_", siteNb, ".csv"), row.names = FALSE)
+  # Calculate the binary output matrix
+  # Check small interval size for each position, then increase size and check for each position, then increase, etc.
+  # Outer loop to iterate over different interval sizes
+  j <- 1
+  while (interval_size < (cutoff_value - lower_bound)) {
+    
+    left_border <- lower_bound
+    right_border <- lower_bound + interval_size
+    contains_min <- TRUE
+    
+    # Inner loop to iterate over different interval positions
+    while (right_border < cutoff_value) {
+      
+      # Check if the number of data points within the interval meets the threshold
+      data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
+      deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
+      if (deaths_in_interval < nbDataGrouped && data_points_in_interval != 0) {
+        contains_min <- FALSE
+        break
+      }
+      
+      # Move the interval window to the right
+      left_border <- left_border + interval_size
+      right_border <- right_border + interval_size
+    }
+    
+    binary_output_site1[j] <- ifelse(contains_min, 1, 0)
+    
+    interval_size <- interval_size + increase
+    j <- j + 1
+  }
   
-  # Last step: split into intervals
-} else { 
+  # Save the binary output matrix to a CSV file
+  write.csv(binary_output_site1, file=paste0("Binary_output_site_", siteNb, ".csv"), row.names = FALSE)
   
-  # Read the global cutoff and interval size values
-  cutoff_value <- as.integer(read.csv("Global_cutoff.csv"))
-  position <- which.min(abs(array1 - cutoff_value))
-  array1 <- array1[1:position]
+} else {
   
-  interval_size <- as.integer(read.csv("Global_interval_size.csv"))
+  # If the global intervals file exists, change times according to intervals sent by global server
+  intervals <- as.matrix(read.csv(paste0("Global_intervals.csv")))
   
-  # Split the time data into intervals based on the global interval size
-  intervals <- seq(from = lower_bound, to = cutoff_value, by = interval_size)
+  # If last interval is not full, merge two last intervals
+  data_points_in_interval <- sum(data1$time >= intervals[length(intervals)])
+  if (data_points_in_interval < nbDataGrouped && data_points_in_interval != 0) {
+    intervals <- intervals[-length(intervals), , drop = FALSE]
+  }
+  
   data1 <- modify_time(data1, intervals)
   
   # Write the modified data with intervals to a CSV file
   write.csv(data1, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.names = FALSE)
+  
 }
 
 ## Remove all environment variables. 

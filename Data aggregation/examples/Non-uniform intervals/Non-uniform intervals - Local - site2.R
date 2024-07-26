@@ -7,17 +7,6 @@
 # Site number
 siteNb <- 2   # Input here the site number
 
-# Import parameters (do not edit)
-# See Data_aggregation_Brief_Summary for explanation
-params <- read.csv("Parameters.csv", header = FALSE)
-
-nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"] + 1
-lower_bound <- params[params$V1 == "lower_bound", "V2"]
-upper_bound <- params[params$V1 == "upper_bound", "V2"]
-step <- params[params$V1 == "step", "V2"]
-interval_size <- params[params$V1 == "interval_size", "V2"]
-increase <- params[params$V1 == "increase", "V2"]
-
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
 manualwd <- -1
@@ -44,10 +33,21 @@ if (manualwd != 1) {
   print("The automated working directory setup has been bypassed. If there is an error, this might be the cause.")
 }
 
+# Import parameters (do not edit)
+# See Data_aggregation_Brief_Summary for explanation
+params <- read.csv("Parameters.csv", header = FALSE)
+
+nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"]
+lower_bound <- params[params$V1 == "lower_bound", "V2"]
+upper_bound <- params[params$V1 == "upper_bound", "V2"]
+step <- params[params$V1 == "step", "V2"]
+interval_size <- params[params$V1 == "interval_size", "V2"]
+increase <- params[params$V1 == "increase", "V2"]
+
 # ------------------------- CODE STARTS HERE ------------------------
 
 if (step < interval_size){
-  print("Warning: The value of 'step' is smaller than the value of 'interval_size', which may cause suboptimal partionning.")
+  print("Warning: The value of 'step' is bigger than the value of 'interval_size', which may cause suboptimal partionning.")
 }
 
 # Start by computing and sending interval size matrix
@@ -80,9 +80,10 @@ if (!file.exists("Global_intervals.csv")) {
     # Inner loop to iterate over different interval positions
     i <- 1
     while (right_border < upper_bound) {
-      
       # Check if the number of data points within the interval meets the threshold
-      if (sum(data1$time >= left_border & data1$time < right_border) >= nbDataGrouped) {
+      data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
+      deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
+      if (deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0) {
         binary_output_site1[j,i] <- 1
       }
       

@@ -4,16 +4,7 @@
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
 
-siteNb <- ...    # Input here the site number
-
-# Import parameters (do not edit)
-# See Data_aggregation_Brief_Summary for explanation
-params <- read.csv("Parameters.csv", header = FALSE)
-
-nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"]
-lower_bound <- params[params$V1 == "lower_bound", "V2"]
-upper_bound <- params[params$V1 == "upper_bound", "V2"]
-percent_excluded <- params[params$V1 == "percent_excluded", "V2"]
+siteNb <- ...               # Input here the site number
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -40,6 +31,15 @@ if (manualwd != 1) {
 } else {
   print("The automated working directory setup has been bypassed. If there is an error, this might be the cause.")
 }
+
+# Import parameters (do not edit)
+# See Data_aggregation_Brief_Summary for explanation
+params <- read.csv("Parameters.csv", header = FALSE)
+
+nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"]
+lower_bound <- params[params$V1 == "lower_bound", "V2"]
+upper_bound <- params[params$V1 == "upper_bound", "V2"]
+percent_excluded <- params[params$V1 == "percent_excluded", "V2"]
 
 # ------------------------- CODE STARTS HERE ------------------------
 
@@ -72,6 +72,10 @@ array1 <- data1$time
 # First step: choose cutoff
 if (!file.exists("Global_cutoff.csv")) {
   
+  # First check: make sure values are compatible
+  limits <- data.frame(start = array1[6], end = array1[length(array1) - 5])
+  write.csv(limits, paste0("start_end_values_site_", siteNb, ".csv"), row.names = FALSE)
+  
   # Exclude the last values based on the percentage to be excluded
   num_rows <- nrow(data1)
   exclude_index <- floor(num_rows * (1 - percent_excluded / 100))
@@ -85,15 +89,19 @@ if (!file.exists("Global_cutoff.csv")) {
   
   # Second step: choose interval size
 } else if (!file.exists("Global_interval_size.csv")) { 
-  
+ 
   # Read the global cutoff value
   cutoff_value <- as.integer(read.csv("Global_cutoff.csv"))
   position <- which.min(abs(array1 - cutoff_value))
-  array1 <- array1[1:position]
+  
+  data1 <- data1[1:position,]
+  array1 <- data1$time[data1$status == 1]
   
   # Calculate the interval size based on the maximum difference between points
   differences1 <- abs(array1[1:(length(array1) - nbDataGrouped)] - array1[(nbDataGrouped + 1):length(array1)])
-  max_difference1 <- max(differences1)
+  
+  # Biggest difference is either the largest gap between values or gap between lower_bound and the first value
+  max_difference1 <- max(differences1, (array1[1+nbDataGrouped]-as.integer(lower_bound)))
   
   # Write the interval size to a CSV file
   write.csv(max_difference1, file=paste0("Interval_size_site_", siteNb, ".csv"), row.names = FALSE)

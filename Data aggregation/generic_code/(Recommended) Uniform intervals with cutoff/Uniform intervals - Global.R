@@ -39,6 +39,20 @@ K=length(list.files(pattern="Cutoff_site_[[:digit:]]+.csv"))
 # Find the lowest cutoff value from all sites
 if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Interval_size_site_", K, ".csv"))) {
   
+  # Before anything else, check if values are compatible (overlap is present between sites)
+  min_values <- numeric(K)
+  max_values <- numeric(K)
+  for (k in 1:K) {
+    min_max <- read.csv(paste0("Start_end_values_site_", k, ".csv"))
+    min_values[k] <- min_max$start
+    max_values[k] <- min_max$end
+  }
+  
+  error_flag <- any(outer(min_values, max_values, ">"))
+  if (error_flag) {
+    message("WARNING: Distributions seem to be non homogeneous. Proceed with caution.")
+  }
+  
   # Loop over sites
   min_cutoff <- Inf
   for(k in 1:K){
