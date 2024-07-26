@@ -5,14 +5,16 @@
 ## Copyright: GRIIS / Université de Sherbrooke
 
 # Loading packages and setting up core variables --------------------------
-library("survival")          # Contains the core survival analysis routines                      
+library("survival")          # Contains the core survival analysis routines
+library(MASS)
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
 manualwd <- -1
 
 # Number of parameters (covariates)
-nbBetas <- 3   # Input the number of betas here
+nbBetas <- 3    # Input the number of betas here
+alpha <- 0.05   # Change if needed
 
 if (manualwd != 1) {
   
@@ -202,6 +204,21 @@ if (file.exists("sumExp1_output_1.csv") ) {
     
     # Write in csv to max_number+1
     write.csv(beta, file=paste0("Beta_", ite, "_output.csv"), row.names = FALSE)
+    
+    # Computing standard error
+    se <- qnorm(1 - 0.5*alpha) * sqrt(abs(diag(lrq_beta_inv)))
+    
+    # Computing p-values
+    temp <- abs(beta)/sqrt(abs(diag(lrq_beta_inv)))
+    p_vals <- 2*(1 - pnorm(temp$x))
+    
+    # Exporting final results
+    output <- cbind(beta, beta - se, beta + se, p_vals)
+    output <- format(output, digits = 6, nsmall = 6)
+    colnames(output) <- c("Estimate", paste0("CI lower bound (alpha=", alpha, ")"),
+                          paste0("CI upper bound (alpha=", alpha, ")"), "p-value")
+    rownames(output) <- paste0("X", seq_len(length(beta$x)))
+    write.csv(output,file=paste0("Results_iter_", ite, "_results.csv"), quote = FALSE)
     
   } else {
     print("New values must be computed locally in order to do another iteration.")

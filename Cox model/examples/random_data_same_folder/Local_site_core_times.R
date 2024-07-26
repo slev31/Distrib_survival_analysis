@@ -65,7 +65,7 @@ data_event_times <- function(man_wd=-1,nodeid=-1,nodebetas=-1) {
   # Calculate local Cox model
   column_indices <- (3:(nbBetas + 2))
   formula <- as.formula(paste("Surv(time, status) ~", paste(paste0("node_data[,", column_indices, "]"), collapse = " + ")))
-  res.cox <- coxph(formula, node_data)
+  res.cox <- coxph(formula, node_data, ties = "breslow")
   write.csv(coef(res.cox), file=paste0("Beta_local_",k,".csv"),row.names = FALSE,na="0")
   
   # Get variance-covariance matrix

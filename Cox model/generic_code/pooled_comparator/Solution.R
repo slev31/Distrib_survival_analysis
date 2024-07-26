@@ -49,7 +49,7 @@ data <- rbind(data1, data2, data3)
 # Calculate Cox model
 column_indices <- (3:(nbBetas + 2))
 formula <- as.formula(paste("Surv(time, status) ~", paste(paste0("data[,", column_indices, "]"), collapse = " + ")))
-res.cox <- coxph(formula, data)
+res.cox <- coxph(formula, data, ties = "breslow")
 summary(res.cox)
 
 ## Remove all environment variables. 
