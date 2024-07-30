@@ -33,9 +33,6 @@ if (manualwd != 1) {
 # Import parameters (do not edit)
 # See Data_aggregation_Brief_Summary for explanation
 params <- read.csv("Parameters.csv", header = FALSE)
-
-lower_bound <- params[params$V1 == "lower_bound", "V2"]
-upper_bound <- params[params$V1 == "upper_bound", "V2"]
 step <- params[params$V1 == "step", "V2"]
 interval_size <- params[params$V1 == "interval_size", "V2"]
 increase <- params[params$V1 == "increase", "V2"]
@@ -50,7 +47,7 @@ if (step > interval_size){
   print("Warning: The value of 'step' is bigger than the value of 'interval_size', which may cause suboptimal partionning.")
 }
 
-# Find the lowest cutoff value from all sites
+# Find the global cutoff values
 if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binary_output_site_", K, ".csv"))) {
   
   # Loop over sites to find global min and max cutoff values
@@ -81,10 +78,15 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
     }
   }
   
+  # Get cutoff values
+  global_cutoff_value <- read.csv("Global_cutoff.csv")
+  min_cutoff <- as.integer(global_cutoff_value[1,])
+  max_cutoff <- as.integer(global_cutoff_value[2,])
+  
   # Initialize variables for finding intervals
   intervals <- list()
   initial_interval_size <- interval_size
-  value <- lower_bound
+  value <- min_cutoff
   nbRows <- nrow(binary_output_global)
   done <- FALSE
   position <- 1
@@ -97,14 +99,11 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
         # Check if the interval is valid across all sites
         if (binary_output_global[i, position] == K) {
           # Calculate the interval start value and append it to the list
-          print(position)
-          print(value)
-          print(i)
           intervals <- append(intervals, value)
           value <- value + (initial_interval_size + (i - 1) * increase)
           
           # Update the next position to check for the next interval
-          position <- floor((value - lower_bound) / step) + 1
+          position <- floor((value - min_cutoff) / step) + 1
           done <- TRUE
         }
         # If reached the last row without finding a valid interval, exit the loop
@@ -117,8 +116,9 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
   }
   
   # Add the last interval border
-  intervals <- append(intervals, upper_bound + 1)
+  intervals <- append(intervals, max_cutoff + 1)
   
+  # Write intervals to a CSV
   write.csv(intervals, file=paste0("Global_intervals.csv"), row.names = FALSE)
 }
 

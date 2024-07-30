@@ -33,9 +33,6 @@ if (manualwd != 1) {
 # Import parameters (do not edit)
 # See Data_aggregation_Brief_Summary for explanation
 params <- read.csv("Parameters.csv", header = FALSE)
-
-lower_bound <- params[params$V1 == "lower_bound", "V2"]
-upper_bound <- params[params$V1 == "upper_bound", "V2"]
 increase <- params[params$V1 == "increase", "V2"]
 interval_size <- increase
 
@@ -77,13 +74,14 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
     }
   }
   
-  # Find minimum interval size
-  first_one_index <- which(binary_output_global == K)[1]
-  value <- lower_bound + interval_size + (first_one_index - 1) * increase
-  
+  # Get cutoff values
   global_cutoff_value <- read.csv("Global_cutoff.csv")
   min_cutoff <- as.integer(global_cutoff_value[1,])
   max_cutoff <- as.integer(global_cutoff_value[2,])
+  
+  # Find minimum interval size
+  first_one_index <- which(binary_output_global == K)[1]
+  value <- interval_size + (first_one_index - 1) * increase
   
   # Generate interval list with interval size between min and max values
   intervals <- seq(from = min_cutoff, to = max_cutoff, by = value)

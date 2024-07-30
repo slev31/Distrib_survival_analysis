@@ -36,18 +36,18 @@ if (manualwd != 1) {
 # ------------------------- CODE STARTS HERE ------------------------
 
 # Set the specific beta values
-betas <- c(-0.6, 0.5, -0.4)  # Adjust these values
+betas <- c(-2, -0.5, -1.4)  # Adjust these values
 
 # Number of observations
-N <- 1000  # When N is big, the model coefficients are close to betas
+N <- 1500  # When N is big, the model coefficients are close to betas
 
 # Generate custom covariates
-set.seed(123)
+set.seed(1914217)
 
 # Distribution of covariates
-X1 <- rnorm(N, mean=0, sd=0.5)
-X2 <- rbinom(N, size=1, prob=0.3)
-X3 <- runif(N, min=0, max=0.5)
+X1 <- rgamma(N, shape=2, scale=1)
+X2 <- rnorm(N, mean=1, sd=1)
+X3 <- rbinom(N, size=1, prob=0.3)
 
 # Combine into a data frame
 covariates <- data.frame(X1, X2, X3)
@@ -63,11 +63,16 @@ U <- runif(N, min=0, max=1)
 survival_times <- (-log(U))/(baseline_hazard*exp(eta)) * 1  # Increased multiplier for spread
 
 # Transformation to shift the peak of the survival time distribution
-shift_factor <- 6  # Adjust this factor to move the peak
+shift_factor <- 10  # Adjust this factor to move the peak
 transformed_survival_times <- survival_times + shift_factor
 
 # Generate censoring times (for example, uniformly between 0 and 100)
 censoring_times <- runif(N, min = 0, max = 100)
+
+# Uncomment if you want to specify the amount of censored data
+#desired_censored_proportion <- 0.9
+#censor_index <- sample(1:N, size = floor(N * desired_censored_proportion))
+#censoring_times[censor_index] <- pmin(censoring_times[censor_index], transformed_survival_times[censor_index] - 1e-5)
 
 # Determine observed times and event indicator
 observed_times <- pmin(transformed_survival_times, censoring_times)

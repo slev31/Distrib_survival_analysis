@@ -8,7 +8,7 @@
 library("dplyr")        # A fast, consistent tool for working with data frame like objects, both in memory and out of memory.
 
 # Parameters
-siteNb <- 1             # Input here the site number
+siteNb <- 2             # Input here the site number
 nbDataGrouped <- 5      # Input here the number of subjects grouped together
 
 # If you want to skip the automated working directory setting, input 1 here. 

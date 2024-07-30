@@ -7,6 +7,7 @@
 # Loading packages and setting up core variables --------------------------
 library("dplyr")        # A fast, consistent tool for working with data frame like objects, both in memory and out of memory.
 
+# Parameters
 siteNb <- ...             # Input here the site number
 nbDataGrouped <- ...      # Input here the number of subjects grouped together
 

@@ -4,10 +4,10 @@
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
 
-# Site number
-siteNb <- 2   # Input here the site number
-left_percent_excluded <- 2
-right_percent_excluded <- 2
+# Parameters
+siteNb <- 2                     # Input here the site number
+left_percent_excluded <- 2      # Input here the percent of values to be excluded (left side of the distribution)
+right_percent_excluded <- 2     # Input here the percent of values to be excluded (right side of the distribution)
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -40,8 +40,6 @@ if (manualwd != 1) {
 params <- read.csv("Parameters.csv", header = FALSE)
 
 nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"]
-lower_bound <- params[params$V1 == "lower_bound", "V2"]
-upper_bound <- params[params$V1 == "upper_bound", "V2"]
 step <- params[params$V1 == "step", "V2"]
 interval_size <- params[params$V1 == "interval_size", "V2"]
 increase <- params[params$V1 == "increase", "V2"]
@@ -59,6 +57,7 @@ data1 <- data1[order(data1$time), ]
 # First step: choose cutoff
 if (!file.exists("Global_cutoff.csv")) {
   
+  # Get number of rows
   num_rows <- nrow(data1)
   
   # Calculate the number of rows to exclude from the beginning
@@ -73,41 +72,48 @@ if (!file.exists("Global_cutoff.csv")) {
   data1_filtered <- data1[start_row:end_row, ]
   array1_filtered <- data1_filtered$time
   
-  # Get the first value of array1_filtered
+  # Get the first and last value of array1_filtered
   first_value <- array1_filtered[1]
-  
-  # Get the last value of array1_filtered
   last_value <- array1_filtered[length(array1_filtered)]
   
   # Write the cutoff value to a CSV file
   write.csv(c(first_value, last_value), file=paste0("Cutoff_site_", siteNb, ".csv"), row.names = FALSE)
 
-# Start by computing and sending interval size matrix
+# Compute and send interval size matrix
 } else if (!file.exists("Global_intervals.csv")) {
   
+  # Get local cutoff values and filter data
+  local_cutoff_value <- read.csv(paste0("Cutoff_site_", siteNb, ".csv"))
+  data1 <- data1[data1$time >= local_cutoff_value[1,] & data1$time <= local_cutoff_value[2,],]
+  
+  # Get global cutoff values
+  global_cutoff_value <- read.csv("Global_cutoff.csv")
+  min_cutoff <- as.integer(global_cutoff_value[1,])
+  max_cutoff <- as.integer(global_cutoff_value[2,])
+  
   # Data initialization
-  left_border <- lower_bound
-  right_border <- lower_bound + interval_size
+  left_border <- min_cutoff
+  right_border <- min_cutoff + interval_size
   initial_interval_size <- interval_size
   
   # Calculate the number of different interval types and the maximum number of intervals
   # Different interval types depends of min, max, interval_size and increase
   # Maximum number of intervals depends on min, max, the smallest interval size and the step
-  nbTypesOfIntervals <- floor(((upper_bound - lower_bound) - interval_size) / increase) + 1
-  maxNbOfIntervals <- floor(((upper_bound - interval_size) - lower_bound) / step) + 1
+  nbTypesOfIntervals <- floor(((max_cutoff - min_cutoff) - interval_size) / increase) + 1
+  maxNbOfIntervals <- floor(((max_cutoff - interval_size) - min_cutoff) / step) + 1
   
   # Initialize a binary output matrix to store results
   binary_output_site1 <- matrix(0, nrow = nbTypesOfIntervals, ncol = maxNbOfIntervals)
   
   # Calculate the binary output matrix
-  # Check small interval size for each position, then increase size and check for each position, then increase, etc.
-  # Outer loop to iterate over different interval sizes
+  # Outer loop iterates over different interval sizes
+  # Inner loop iterates over different start position for the intervals
   j <- 1
-  while (interval_size < (upper_bound - lower_bound)) {
+  while (interval_size < (max_cutoff - min_cutoff)) {
     
     # Inner loop to iterate over different interval positions
     i <- 1
-    while (right_border < upper_bound) {
+    while (right_border < max_cutoff) {
       # Check if the number of data points within the interval meets the threshold
       data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
       deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
@@ -125,9 +131,8 @@ if (!file.exists("Global_cutoff.csv")) {
     
     # Increase the interval size and reset the interval positions
     interval_size <- interval_size + increase
-    left_border <- lower_bound
-    right_border <- lower_bound + interval_size
-    
+    left_border <- min_cutoff
+    right_border <- min_cutoff + interval_size
     j <- j + 1
   }
   
@@ -136,8 +141,12 @@ if (!file.exists("Global_cutoff.csv")) {
   
 } else {
   
-  # If the global intervals file exists, change times according to intervals sent by global server
+  # Get global intervals
   intervals <- read.csv(paste0("Global_intervals.csv"))
+  
+  # Get local cutoff values and filter data
+  local_cutoff_value <- read.csv(paste0("Cutoff_site_", siteNb, ".csv"))
+  data1 <- data1[data1$time >= local_cutoff_value[1,] & data1$time <= local_cutoff_value[2,],]
   
   # Bin the times into intervals specified by the global intervals file
   data1$time <- cut(data1$time, breaks = c(-Inf, intervals), labels = FALSE, right = FALSE)
