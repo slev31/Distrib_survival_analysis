@@ -1,5 +1,5 @@
 ##################  DATA AGGREGATION ######################
-################ NON-UNIFORM INTERVALS ####################
+################## UNIFORM INTERVALS ######################
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
@@ -36,19 +36,14 @@ params <- read.csv("Parameters.csv", header = FALSE)
 
 lower_bound <- params[params$V1 == "lower_bound", "V2"]
 upper_bound <- params[params$V1 == "upper_bound", "V2"]
-step <- params[params$V1 == "step", "V2"]
-interval_size <- params[params$V1 == "interval_size", "V2"]
 increase <- params[params$V1 == "increase", "V2"]
+interval_size <- increase
 
 # ------------------------- CODE STARTS HERE ------------------------
 
 # Calculate number of data nodes from files fitting the pattern in the working directory
 # This assumes cutoff times outputs have a name like Cutoff_site_[[:digit:]]+.csv
 K=length(list.files(pattern="Cutoff_site_[[:digit:]]+.csv"))
-
-if (step > interval_size){
-  print("Warning: The value of 'step' is bigger than the value of 'interval_size', which may cause suboptimal partionning.")
-}
 
 # Find the lowest cutoff value from all sites
 if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binary_output_site_", K, ".csv"))) {
@@ -69,8 +64,9 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
   # Write cutoff values in CSV
   write.csv(c(min_cutoff, max_cutoff), file="Global_cutoff.csv", row.names = FALSE)
   
-} else if (file.exists(paste0("Binary_output_site_", K, ".csv"))){
-
+  # Find the smallest interval size that works for all sites
+} else {
+  
   # Aggregate binary output matrices from all sites
   for (i in 1:K) {
     binary_output_site <- as.matrix(read.csv(paste0("Binary_output_site_", i, ".csv")))
@@ -81,44 +77,18 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
     }
   }
   
-  # Initialize variables for finding intervals
-  intervals <- list()
-  initial_interval_size <- interval_size
-  value <- lower_bound
-  nbRows <- nrow(binary_output_global)
-  done <- FALSE
-  position <- 1
+  # Find minimum interval size
+  first_one_index <- which(binary_output_global == K)[1]
+  value <- lower_bound + interval_size + (first_one_index - 1) * increase
   
-  # Loop through positions in the binary output matrix to find valid intervals
-  # Check Data_aggregation_Brief_Summary for a clearer explanation of the algorithm
-  while (position < ncol(binary_output_global)) {
-    for (i in 1:nbRows) {
-      if (!done) {
-        # Check if the interval is valid across all sites
-        if (binary_output_global[i, position] == K) {
-          # Calculate the interval start value and append it to the list
-          print(position)
-          print(value)
-          print(i)
-          intervals <- append(intervals, value)
-          value <- value + (initial_interval_size + (i - 1) * increase)
-          
-          # Update the next position to check for the next interval
-          position <- floor((value - lower_bound) / step) + 1
-          done <- TRUE
-        }
-        # If reached the last row without finding a valid interval, exit the loop
-        if (i == nbRows) {
-          position <- ncol(binary_output_global)
-        }
-      }
-    } 
-    done <- FALSE
-  }
+  global_cutoff_value <- read.csv("Global_cutoff.csv")
+  min_cutoff <- as.integer(global_cutoff_value[1,])
+  max_cutoff <- as.integer(global_cutoff_value[2,])
   
-  # Add the last interval border
-  intervals <- append(intervals, upper_bound + 1)
+  # Generate interval list with interval size between min and max values
+  intervals <- seq(from = min_cutoff, to = max_cutoff, by = value)
   
+  # Write list to CSV
   write.csv(intervals, file=paste0("Global_intervals.csv"), row.names = FALSE)
 }
 

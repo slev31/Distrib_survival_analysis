@@ -87,4 +87,4 @@ write.csv(data1_grouped, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.
 
 ## Remove all environment variables. 
 ## If you want to see the variable that were created, simply don't execute that line (and clear them manually after)
-#rm(list = ls())
+rm(list = ls())

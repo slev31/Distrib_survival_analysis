@@ -1,13 +1,14 @@
 ##################  DATA AGGREGATION ######################
-################ NON-UNIFORM INTERVALS ####################
+################## UNIFORM INTERVALS ######################
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
 
 # Site number
-siteNb <- 1   # Input here the site number
-left_percent_excluded <- 2
-right_percent_excluded <- 2
+siteNb <- 2                     # Input here the site number
+
+left_percent_excluded <- 2      # Input here the percent of values to be excluded (left side of the distribution)
+right_percent_excluded <- 2     # Input here the percent of values to be excluded (right side of the distribution)
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -42,14 +43,35 @@ params <- read.csv("Parameters.csv", header = FALSE)
 nbDataGrouped <- params[params$V1 == "nbDataGrouped", "V2"]
 lower_bound <- params[params$V1 == "lower_bound", "V2"]
 upper_bound <- params[params$V1 == "upper_bound", "V2"]
-step <- params[params$V1 == "step", "V2"]
-interval_size <- params[params$V1 == "interval_size", "V2"]
 increase <- params[params$V1 == "increase", "V2"]
+interval_size <- increase
 
 # ------------------------- CODE STARTS HERE ------------------------
 
-if (step > interval_size){
-  print("Warning: The value of 'step' is bigger than the value of 'interval_size', which may cause suboptimal partionning.")
+#' This function updates the values of time by determining in which interval each value falls 
+#' into and then replacing the original time value with the corresponding interval number.
+#'
+#' @param data A data frame containing the site data.
+#' @param intervals A list containing the interval endpoints.
+#' 
+#' @return A data frame containing the site data where the time values have been modified.
+
+modify_time <- function(data, intervals) {
+  interval_values <- 1:(length(intervals) - 1)
+  data$time <- sapply(data$time, function(time_value) {
+    if (time_value < intervals[1]) {
+      return(interval_values[1])
+    } else if (time_value >= intervals[length(intervals)]) {
+      return(interval_values[length(interval_values)])
+    } else {
+      for (i in 1:(length(intervals) - 1)) {
+        if (time_value >= intervals[i] && time_value < intervals[i + 1]) {
+          return(interval_values[i])
+        }
+      }
+    }
+  })
+  return(data)
 }
 
 # Read data
@@ -81,53 +103,54 @@ if (!file.exists("Global_cutoff.csv")) {
   
   # Write the cutoff value to a CSV file
   write.csv(c(first_value, last_value), file=paste0("Cutoff_site_", siteNb, ".csv"), row.names = FALSE)
-
-# Start by computing and sending interval size matrix
+  
+  # Second step: compute and send interval size matrix
 } else if (!file.exists("Global_intervals.csv")) {
   
-  # Data initialization
-  left_border <- lower_bound
-  right_border <- lower_bound + interval_size
-  initial_interval_size <- interval_size
+  local_cutoff_value <- read.csv(paste0("Cutoff_site_", siteNb, ".csv"))
+  data1 <- data1[data1$time >= local_cutoff_value[1,] & data1$time <= local_cutoff_value[2,],]
   
+  global_cutoff_value <- read.csv("Global_cutoff.csv")
+  min_cutoff <- as.integer(global_cutoff_value[1,])
+  max_cutoff <- as.integer(global_cutoff_value[2,])
+    
   # Calculate the number of different interval types and the maximum number of intervals
   # Different interval types depends of min, max, interval_size and increase
   # Maximum number of intervals depends on min, max, the smallest interval size and the step
-  nbTypesOfIntervals <- floor(((upper_bound - lower_bound) - interval_size) / increase) + 1
-  maxNbOfIntervals <- floor(((upper_bound - interval_size) - lower_bound) / step) + 1
+  nbTypesOfIntervals <- (max_cutoff - min_cutoff) / increase
   
   # Initialize a binary output matrix to store results
-  binary_output_site1 <- matrix(0, nrow = nbTypesOfIntervals, ncol = maxNbOfIntervals)
+  binary_output_site1 <- matrix(0, nrow = nbTypesOfIntervals, 1)
   
   # Calculate the binary output matrix
   # Check small interval size for each position, then increase size and check for each position, then increase, etc.
   # Outer loop to iterate over different interval sizes
   j <- 1
-  while (interval_size < (upper_bound - lower_bound)) {
+  while (interval_size < (max_cutoff - min_cutoff)) {
+    
+    left_border <- min_cutoff
+    right_border <- min_cutoff + interval_size
+    contains_min <- TRUE
     
     # Inner loop to iterate over different interval positions
-    i <- 1
-    while (right_border < upper_bound) {
+    while (right_border < max_cutoff) {
+      
       # Check if the number of data points within the interval meets the threshold
       data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
       deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
-      data_after <- sum(data1$time >= right_border)
-      death_after <- sum(data1$time >= right_border & data1$status == 1)
-      if ((deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0) && (death_after >= nbDataGrouped || data_after == 0)) {
-        binary_output_site1[j,i] <- 1
+      if (deaths_in_interval < nbDataGrouped && data_points_in_interval != 0) {
+        contains_min <- FALSE
+        break
       }
       
       # Move the interval window to the right
-      left_border <- left_border + step
-      right_border <- right_border + step
-      i <- i + 1
+      left_border <- left_border + interval_size
+      right_border <- right_border + interval_size
     }
     
-    # Increase the interval size and reset the interval positions
-    interval_size <- interval_size + increase
-    left_border <- lower_bound
-    right_border <- lower_bound + interval_size
+    binary_output_site1[j] <- ifelse(contains_min, 1, 0)
     
+    interval_size <- interval_size + increase
     j <- j + 1
   }
   
@@ -137,12 +160,16 @@ if (!file.exists("Global_cutoff.csv")) {
 } else {
   
   # If the global intervals file exists, change times according to intervals sent by global server
-  intervals <- read.csv(paste0("Global_intervals.csv"))
+  intervals <- as.matrix(read.csv(paste0("Global_intervals.csv")))
   
-  # Bin the times into intervals specified by the global intervals file
-  data1$time <- cut(data1$time, breaks = c(-Inf, intervals), labels = FALSE, right = FALSE)
+  # Get data
+  local_cutoff_value <- read.csv(paste0("Cutoff_site_", siteNb, ".csv"))
+  data1 <- data1[data1$time >= local_cutoff_value[1,] & data1$time <= local_cutoff_value[2,],]
   
-  # Save the grouped data to a new CSV file
+  # Modify time values in data
+  data1 <- modify_time(data1, intervals)
+  
+  # Write the modified data with intervals to a CSV file
   write.csv(data1, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.names = FALSE)
   
 }

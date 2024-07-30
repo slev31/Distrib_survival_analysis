@@ -42,64 +42,86 @@ increase <- params[params$V1 == "increase", "V2"]
 
 # ------------------------- CODE STARTS HERE ------------------------
 
-# Calculate number of data nodes from files fiting the pattern in the working directory
-# This assumes unique event times outputs have a name like Times_[[:digit:]]+_output.csv
-K=length(list.files(pattern="Binary_output_site_[[:digit:]]+.csv"))
+# Calculate number of data nodes from files fitting the pattern in the working directory
+# This assumes cutoff times outputs have a name like Cutoff_site_[[:digit:]]+.csv
+K=length(list.files(pattern="Cutoff_site_[[:digit:]]+.csv"))
 
 if (step > interval_size){
   print("Warning: The value of 'step' is bigger than the value of 'interval_size', which may cause suboptimal partionning.")
 }
 
-# Aggregate binary output matrices from all sites
-for (i in 1:K) {
-  binary_output_site <- as.matrix(read.csv(paste0("Binary_output_site_", i, ".csv")))
-  if (i == 1) {
-    binary_output_global <- binary_output_site
-  } else {
-    binary_output_global <- binary_output_global + binary_output_site
-  }
-}
-
-write.csv(binary_output_global, file=paste0("Binary_output_site_global.csv"), row.names = FALSE)
-
-# Initialize variables for finding intervals
-intervals <- list()
-initial_interval_size <- interval_size
-value <- lower_bound
-nbRows <- nrow(binary_output_global)
-done <- FALSE
-position <- 1
-
-# Loop through positions in the binary output matrix to find valid intervals
-# Check Data_aggregation_Brief_Summary for a clearer explanation of the algorithm
-while (position < ncol(binary_output_global)) {
-  for (i in 1:nbRows) {
-    if (!done) {
-      # Check if the interval is valid across all sites
-      if (binary_output_global[i, position] == K) {
-        # Calculate the interval start value and append it to the list
-        intervals <- append(intervals, value)
-        value <- value + (initial_interval_size + (i - 1) * increase)
-        
-        # Update the next position to check for the next interval
-        position <- floor((value - lower_bound) / step) + 1
-        done <- TRUE
-      }
-      # If reached the last row without finding a valid interval, exit the loop
-      if (i == nbRows) {
-        position <- ncol(binary_output_global)
-      }
+# Find the lowest cutoff value from all sites
+if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binary_output_site_", K, ".csv"))) {
+  
+  # Loop over sites to find global min and max cutoff values
+  min_cutoff <- Inf
+  max_cutoff <- 0
+  for(k in 1:K){
+    cutoff_local <- read.csv(paste0("Cutoff_site_", k, ".csv"))
+    if (cutoff_local[1,] < min_cutoff){
+      min_cutoff <- cutoff_local[1,]
+    }
+    if (cutoff_local[2,] > max_cutoff){
+      max_cutoff <- cutoff_local[2,]
     }
   }
+  
+  # Write cutoff values in CSV
+  write.csv(c(min_cutoff, max_cutoff), file="Global_cutoff.csv", row.names = FALSE)
+  
+} else if (file.exists(paste0("Binary_output_site_", K, ".csv"))){
+
+  # Aggregate binary output matrices from all sites
+  for (i in 1:K) {
+    binary_output_site <- as.matrix(read.csv(paste0("Binary_output_site_", i, ".csv")))
+    if (i == 1) {
+      binary_output_global <- binary_output_site
+    } else {
+      binary_output_global <- binary_output_global + binary_output_site
+    }
+  }
+  
+  # Initialize variables for finding intervals
+  intervals <- list()
+  initial_interval_size <- interval_size
+  value <- lower_bound
+  nbRows <- nrow(binary_output_global)
   done <- FALSE
+  position <- 1
+  
+  # Loop through positions in the binary output matrix to find valid intervals
+  # Check Data_aggregation_Brief_Summary for a clearer explanation of the algorithm
+  while (position < ncol(binary_output_global)) {
+    for (i in 1:nbRows) {
+      if (!done) {
+        # Check if the interval is valid across all sites
+        if (binary_output_global[i, position] == K) {
+          # Calculate the interval start value and append it to the list
+          print(position)
+          print(value)
+          print(i)
+          intervals <- append(intervals, value)
+          value <- value + (initial_interval_size + (i - 1) * increase)
+          
+          # Update the next position to check for the next interval
+          position <- floor((value - lower_bound) / step) + 1
+          done <- TRUE
+        }
+        # If reached the last row without finding a valid interval, exit the loop
+        if (i == nbRows) {
+          position <- ncol(binary_output_global)
+        }
+      }
+    } 
+    done <- FALSE
+  }
+  
+  # Add the last interval border
+  intervals <- append(intervals, upper_bound + 1)
+  
+  write.csv(intervals, file=paste0("Global_intervals.csv"), row.names = FALSE)
 }
-
-# Add the last interval and merge the last two together
-intervals <- append(intervals, upper_bound + 1)
-intervals <- intervals[-(length(intervals) - 1)]
-
-write.csv(intervals, file=paste0("Global_intervals.csv"), row.names = FALSE)
 
 ## Remove all environment variables. 
 ## If you want to see the variable that were created, simply don't execute that line (and clear them manually after)
-#rm(list = ls())
+rm(list = ls())

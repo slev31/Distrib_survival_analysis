@@ -5,7 +5,9 @@
 ## Copyright: GRIIS / Université de Sherbrooke
 
 # Site number
-siteNb <- ...   # Input here the site number
+siteNb <- 1   # Input here the site number
+left_percent_excluded <- 2
+right_percent_excluded <- 2
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -46,16 +48,42 @@ increase <- params[params$V1 == "increase", "V2"]
 
 # ------------------------- CODE STARTS HERE ------------------------
 
-if (step < interval_size){
+if (step > interval_size){
   print("Warning: The value of 'step' is bigger than the value of 'interval_size', which may cause suboptimal partionning.")
 }
 
-# Start by computing and sending interval size matrix
-if (!file.exists("Global_intervals.csv")) {
+# Read data
+data1 <- read.csv(paste0("Data_site_", siteNb, ".csv"))
+data1 <- data1[order(data1$time), ]
+
+# First step: choose cutoff
+if (!file.exists("Global_cutoff.csv")) {
   
-  # Read data
-  data1 <- read.csv(paste0("Data_site_", siteNb, ".csv"))
-  data1 <- data1[order(data1$time), ]
+  num_rows <- nrow(data1)
+  
+  # Calculate the number of rows to exclude from the beginning
+  exclude_start_index <- floor(num_rows * (left_percent_excluded / 100))
+  exclude_end_index <- floor(num_rows * (right_percent_excluded / 100))
+  
+  # Determine the range of rows to include
+  start_row <- exclude_start_index + 1
+  end_row <- num_rows - exclude_end_index
+  
+  # Filter the data to exclude the specified rows from both ends
+  data1_filtered <- data1[start_row:end_row, ]
+  array1_filtered <- data1_filtered$time
+  
+  # Get the first value of array1_filtered
+  first_value <- array1_filtered[1]
+  
+  # Get the last value of array1_filtered
+  last_value <- array1_filtered[length(array1_filtered)]
+  
+  # Write the cutoff value to a CSV file
+  write.csv(c(first_value, last_value), file=paste0("Cutoff_site_", siteNb, ".csv"), row.names = FALSE)
+
+# Start by computing and sending interval size matrix
+} else if (!file.exists("Global_intervals.csv")) {
   
   # Data initialization
   left_border <- lower_bound
@@ -83,7 +111,9 @@ if (!file.exists("Global_intervals.csv")) {
       # Check if the number of data points within the interval meets the threshold
       data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
       deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
-      if (deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0) {
+      data_after <- sum(data1$time >= right_border)
+      death_after <- sum(data1$time >= right_border & data1$status == 1)
+      if ((deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0) && (death_after >= nbDataGrouped || data_after == 0)) {
         binary_output_site1[j,i] <- 1
       }
       
@@ -107,12 +137,10 @@ if (!file.exists("Global_intervals.csv")) {
 } else {
   
   # If the global intervals file exists, change times according to intervals sent by global server
-  data1 <- read.csv(paste0("Data_site_", siteNb, ".csv"))
   intervals <- read.csv(paste0("Global_intervals.csv"))
   
   # Bin the times into intervals specified by the global intervals file
   data1$time <- cut(data1$time, breaks = c(-Inf, intervals), labels = FALSE, right = FALSE)
-  data1 <- data1[order(data1$time), ]
   
   # Save the grouped data to a new CSV file
   write.csv(data1, file=paste0("Grouped_Data_site_", siteNb, ".csv"), row.names = FALSE)
