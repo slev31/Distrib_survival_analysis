@@ -5,9 +5,9 @@
 ## Copyright: GRIIS / Université de Sherbrooke
 
 # Parameters
-siteNb <- ...                     # Input here the site number
-left_percent_excluded <- ...      # Input here the percent of values to be excluded (left side of the distribution)
-right_percent_excluded <- ...     # Input here the percent of values to be excluded (right side of the distribution)
+siteNb <- 1                     # Input here the site number
+left_percent_excluded <- 2      # Input here the percent of values to be excluded (left side of the distribution)
+right_percent_excluded <- 2     # Input here the percent of values to be excluded (right side of the distribution)
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
@@ -143,6 +143,10 @@ if (!file.exists("Global_cutoff.csv")) {
   
   # Get global intervals
   intervals <- read.csv(paste0("Global_intervals.csv"))
+  
+  # Get local cutoff values and filter data
+  local_cutoff_value <- read.csv(paste0("Cutoff_site_", siteNb, ".csv"))
+  data1 <- data1[data1$time >= local_cutoff_value[1,] & data1$time <= local_cutoff_value[2,],]
   
   # Bin the times into intervals specified by the global intervals file
   data1$time <- cut(data1$time, breaks = c(-Inf, intervals), labels = FALSE, right = FALSE)

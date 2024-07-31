@@ -1,4 +1,4 @@
-############### DATA GENERATION FOR SURVIVAL ANALYSIS ####################
+############### GRAPH GENERATION FOR SURVIVAL ANALYSIS ####################
 
 ## License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 ## Copyright: GRIIS / Université de Sherbrooke
@@ -35,6 +35,7 @@ if (manualwd != 1) {
 
 # ------------------------- CODE STARTS HERE ------------------------
 
+# Read data
 data1 <- read.csv("Data_site_1.csv")
 data2 <- read.csv("Data_site_2.csv")
 
@@ -64,3 +65,7 @@ combined_plot <- ggplot(combined_data, aes(x = time, color = dataset)) +
 
 # Display the combined plot
 print(combined_plot)
+
+## Remove all environment variables. 
+## If you want to see the variable that were created, simply don't execute that line (and clear them manually after)
+rm(list = ls())

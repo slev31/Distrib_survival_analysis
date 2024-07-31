@@ -9,8 +9,8 @@ library("survival")          # Contains the core survival analysis routines
 library(MASS)                # Functions for matrix manipulation (ginv)
 
 # General parameters
-nbBetas <- 3    # Input the number of covariates (betas) here
-alpha <- 0.05   # Change if needed (used in confidence intervals)
+nbBetas <- ...    # Input the number of covariates (betas) here
+alpha <- 0.05     # Change if needed (used in confidence intervals)
 
 # If you want to skip the automated working directory setting, input 1 here. 
 # If you do so, make sure the working directory is set correctly manualy.
