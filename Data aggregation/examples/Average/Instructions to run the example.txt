@@ -5,8 +5,6 @@ There are many ways to run R code. The proposed instructions here are focusing o
 
 :::::: INSTALLING THE REQUIRED PACKAGES ::::::
 : The examples require the use a package not present in the base installation :
-- survival : https://cran.r-project.org/web/packages/survival/index.html https://cran.r-project.org/web/packages/survival/survival.pdf
-- survminer : https://cran.r-project.org/web/packages/survminer/index.html https://cran.r-project.org/web/packages/survminer/survminer.pdf
 - dplyr : https://cran.r-project.org/web/packages/dplyr/index.html https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
 
 : The examples will be easier to explore and adapt/change if the package "this.path" is also available.

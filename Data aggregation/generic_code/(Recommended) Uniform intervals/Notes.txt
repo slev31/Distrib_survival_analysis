@@ -22,8 +22,6 @@ Order of execution:
 The parameters should be determined by the central server and must not be modified by the local sites. The key parameters are as follows:
 
 - nbDataGrouped : This is the number of subjects that will be grouped together. The recommended value is 5.
-- interval_size : This is the initial size of the intervals.
-- increase : This is the value by which the size of the intervals increases.
-- step : This is the value by which the start of the interval will be moved.
+- increase : This is the value by which the size of the interval increases. The recommended value is 1, or the minimum distance between time values.
 
 For more explaination, see Data_aggregation_Brief_Summary.pdf.

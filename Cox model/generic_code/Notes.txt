@@ -12,11 +12,10 @@ The execution assumes that the required files are available in the same folder a
 
 The subfolder pooled_comparator contains code that can be used to execute a centralized Cox model. Make sure to read the code and make the needed adjustments before launching.
 
+
 :::::: IMPORTANT NOTES BEFORE USING ::::::
 
-- To start over, it is important to delete all "output" files.
-
-- Adjust the number of files Local_site_call_x.R according to the number of sites, and make sure to change the value of "manualk" to the site number.
+- Adjust the number of files "Local_site_call_x.R" according to the number of sites, and make sure to change the value of "manualk" to the site number.
 
 - The number of betas to calculate should be written in the header of all local files and the global server.
 
@@ -24,4 +23,6 @@ The subfolder pooled_comparator contains code that can be used to execute a cent
 
 - The first two columns must be named "time" and "status" (order not important).
 
-- For the moment, the code works only with complete data (incomplete data with NA values will not make the code crash, but will cause calculation errors).
+- To start over, it is important to delete all "output" files.
+
+- For the moment, the code works only with complete data (incomplete data with NA values should not make the code crash, but will cause calculation errors).

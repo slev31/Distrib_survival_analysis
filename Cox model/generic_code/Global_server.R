@@ -227,7 +227,7 @@ if (!file.exists("Global_times_output.csv")) {
     rownames(output) <- paste0("X", seq_len(length(beta$x)))
     
     # Write the output to a CSV file
-    write.csv(output, file = paste0("Results_iter_", ite, "_results.csv"), quote = FALSE, row.names = TRUE)
+    write.csv(output, file = paste0("Results_iter_", ite, ".csv"), quote = FALSE, row.names = TRUE)
     
   } else {
     print("New values must be computed locally in order to do another iteration.")

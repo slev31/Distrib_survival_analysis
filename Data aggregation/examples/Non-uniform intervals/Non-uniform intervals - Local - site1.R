@@ -113,14 +113,27 @@ if (!file.exists("Global_cutoff.csv")) {
     
     # Inner loop to iterate over different interval positions
     i <- 1
-    while (right_border < max_cutoff) {
-      # Check if the number of data points within the interval meets the threshold
-      data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
-      deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
-      data_after <- sum(data1$time >= right_border)
-      death_after <- sum(data1$time >= right_border & data1$status == 1)
-      if ((deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0) && (death_after >= nbDataGrouped || data_after == 0)) {
-        binary_output_site1[j,i] <- 1
+    while (right_border <= max_cutoff) {
+      if(right_border < max_cutoff){  
+        # Check if the number of data points within the interval meets the threshold
+        data_points_in_interval <- sum(data1$time >= left_border & data1$time < right_border)
+        deaths_in_interval <- sum(data1$time >= left_border & data1$time < right_border & data1$status == 1)
+        data_after <- sum(data1$time >= right_border)
+        death_after <- sum(data1$time >= right_border & data1$status == 1)
+        
+        if ((deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0) && (death_after >= nbDataGrouped || data_after == 0)) {
+          binary_output_site1[j,i] <- 1
+        }
+        
+        # Case where the last interval is closed instead of open
+      } else{
+        # Check if the number of data points within the interval meets the threshold
+        data_points_in_interval <- sum(data1$time >= left_border & data1$time <= right_border)
+        deaths_in_interval <- sum(data1$time >= left_border & data1$time <= right_border & data1$status == 1)
+        
+        if ((deaths_in_interval >= nbDataGrouped || data_points_in_interval == 0)) {
+          binary_output_site1[j,i] <- 1
+        }
       }
       
       # Move the interval window to the right

@@ -6,6 +6,7 @@ There are many ways to run R code. The proposed instructions here are focusing o
 :::::: INSTALLING THE REQUIRED PACKAGES ::::::
 : The examples require the use a package not present in the base installation :
 - survival : https://cran.r-project.org/web/packages/survival/index.html https://cran.r-project.org/web/packages/survival/survival.pdf
+- MASS : https://cran.r-project.org/web/packages/MASS/index.html https://cran.r-project.org/web/packages/MASS/MASS.pdf
 
 : The examples will be easier to explore and adapt/change if the package "this.path" is also available.
 - this.path : https://cran.r-project.org/package=this.path https://cran.r-project.org/web/packages/this.path/this.path.pdf
@@ -32,8 +33,8 @@ In the following procedure, x represents the number of the local site, and k rep
 
 For the first iteration:
 5) 	Run the local r file (Local_site_call_x.R) for each data node to compute local parameters and local aggregates used for derivatives
-6) 	Take the output files generated ("Dikx.csv", "sumZrx.csv", "sumExpx_output_k.csv", "sumZqExpx_output_k.csv" and "sumZqZrExpx_output_k.csv") and copy them in the coordination node ("Global_server") folder
-7)	Run the coordination r file (Global_server.R) to compute global parameters and to compute first and second derivative and to update beta estimate
+6) 	Take the output files generated ("normDikx.csv", "sumZrx.csv", "sumExpx_output_k.csv", "sumZqExpx_output_k.csv" and "sumZqZrExpx_output_k.csv") and copy them in the coordination node ("Global_server") folder
+7)	Run the coordination r file (Global_server.R) to compute global parameters, to compute first and second derivative and to update beta estimate
 
 Then, for other iterations:
 8) 	Copy the beta csv file (for example "Beta_k_output") to each of the three data node folders
