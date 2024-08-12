@@ -109,7 +109,7 @@ if (!file.exists("Global_cutoff.csv")) {
   # Outer loop iterates over different interval sizes
   # Inner loop iterates over different start position for the intervals
   j <- 1
-  while (interval_size < (max_cutoff - min_cutoff)) {
+  while (interval_size <= (max_cutoff - min_cutoff)) {
     
     # Inner loop to iterate over different interval positions
     i <- 1

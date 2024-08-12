@@ -93,7 +93,7 @@ if (file.exists(paste0("Cutoff_site_", K, ".csv")) && !file.exists(paste0("Binar
   
   # Loop through positions in the binary output matrix to find valid intervals
   # Check Data_aggregation_Brief_Summary for a clearer explanation of the algorithm
-  while (position < ncol(binary_output_global)) {
+  while (position <= ncol(binary_output_global)) {
     for (i in 1:nbRows) {
       if (!done) {
         # Check if the interval is valid across all sites
